@@ -21,11 +21,16 @@ while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                player_car.accelerate()
-            elif event.key == pygame.K_DOWN:
-                player_car.brake()
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP]:
+        player_car.accelerate()
+    elif keys[pygame.K_DOWN]:
+        player_car.brake()
+    elif keys[pygame.K_LEFT]:
+        player_car.turn(constants.TURN_SPEED)
+    elif keys[pygame.K_RIGHT]:
+        player_car.turn(-constants.TURN_SPEED)
 
     # update game status
     car_list.update()
@@ -33,6 +38,7 @@ while not done:
     # handle game logic
 
     # update draw buffer
+    screen.fill(constants.GREEN)
     car_list.draw(screen)
 
     # update screen
