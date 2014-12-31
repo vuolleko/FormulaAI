@@ -9,7 +9,7 @@ screen = pygame.display.set_mode((constants.SCREEN_WIDTH,
                                   constants.SCREEN_HEIGHT))
 pygame.display.set_caption("FormulaAI")
 
-player_car = car.Car(constants.BLUE)
+player_car = car.Car((constants.BLUE))
 car_list = pygame.sprite.Group()
 car_list.add(player_car)
 
