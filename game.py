@@ -25,11 +25,11 @@ while not done:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP]:
         player_car.accelerate()
-    elif keys[pygame.K_DOWN]:
+    if keys[pygame.K_DOWN]:
         player_car.brake()
-    elif keys[pygame.K_LEFT]:
+    if keys[pygame.K_LEFT]:
         player_car.turn(constants.TURN_SPEED)
-    elif keys[pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT]:
         player_car.turn(-constants.TURN_SPEED)
 
     # update game status
