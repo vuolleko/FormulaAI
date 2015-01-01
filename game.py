@@ -1,6 +1,7 @@
 import pygame
 
 import car
+import track
 import constants
 
 pygame.init()
@@ -9,9 +10,14 @@ screen = pygame.display.set_mode((constants.SCREEN_WIDTH,
                                   constants.SCREEN_HEIGHT))
 pygame.display.set_caption("FormulaAI")
 
+track = track.Track()
+sprite_list = pygame.sprite.Group()
+sprite_list.add(track)
+
 player_car = car.Car((constants.BLUE))
 car_list = pygame.sprite.Group()
 car_list.add(player_car)
+sprite_list.add(player_car)
 
 done = False
 clock = pygame.time.Clock()
@@ -38,8 +44,8 @@ while not done:
     # handle game logic
 
     # update draw buffer
-    screen.fill(constants.GREEN)
-    car_list.draw(screen)
+    # screen.fill(constants.GREEN)
+    sprite_list.draw(screen)
 
     # update screen
     clock.tick(60)  # 60 fps

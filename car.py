@@ -8,6 +8,7 @@ class Car(pygame.sprite.Sprite):
         super(Car, self).__init__()
         self.speed = 0.
         self.direction = 0.
+        self.total_distance = 0.
         self.get_image(color)
         self.rect = self.image.get_rect()
         self.rect.center = (100, 100)
@@ -16,10 +17,11 @@ class Car(pygame.sprite.Sprite):
         self.pos_y = self.rect.y
 
     def get_image(self, color):
-        self.car_sprite = pygame.image.load(constants.CARFILE).convert()
+        self.car_sprite = pygame.image.load(constants.CAR_FILE).convert()
         car_sprite_pixelarray = pygame.PixelArray(self.car_sprite)
         car_sprite_pixelarray.replace(constants.RED_ORIG_CAR, color, 0.1)
         self.car_sprite = car_sprite_pixelarray.make_surface()
+        self.car_sprite = pygame.transform.scale(self.car_sprite, (20, 30))
         # pygame.transform.threshold(self.car_sprite, self.car_sprite,
         #     constants.RED_ORIG_CAR, (1, 1, 1), diff_color=color, 2, self.car_sprite, True)
         self.image = pygame.transform.rotate(self.car_sprite,
@@ -27,6 +29,7 @@ class Car(pygame.sprite.Sprite):
         self.image.set_colorkey(constants.BLACK)
 
     def update(self):
+        self.total_distance += self.speed
         self.pos_x += self.speed * cos(self.direction * pi / 180.)
         self.pos_y -= self.speed * sin(self.direction * pi / 180.)  # pos down
         self.rect.x = int(self.pos_x)

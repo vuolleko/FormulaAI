@@ -8,6 +8,8 @@ BLUE = (0, 0, 255)
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-CARFILE = "assets/CarRed.png"
+CAR_FILE = "assets/CarRed.png"
+TRACK_FILE = "assets/track1.png"
+TRACK_MASK_FILE = "assets/track1_mask.png"
 
 TURN_SPEED = 3
