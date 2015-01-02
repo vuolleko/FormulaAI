@@ -4,46 +4,48 @@ from math import sin, cos, pi, sqrt, asin
 import constants
 
 class Car(pygame.sprite.Sprite):
-    def __init__(self, color, start_position, start_direction):
+    def __init__(self, name, color, start_position, start_direction):
         super(Car, self).__init__()
+        self.name = name
         self.color = color
-        self.start_position = start_position
-        self.start_direction = start_direction
+        self._start_position = start_position
+        self._start_direction = start_direction
 
-        self.get_image()
+        self._get_image()
         self.rect = self.image.get_rect()
-        self.reset()
+        self._reset()
 
         self.distance_total = 0.
-        width, height = self.car_sprite.get_size()
+        self.crashes = 0
+        width, height = self._car_sprite.get_size()
         self.half_diag = sqrt(width**2. + height**2.) / 2.
         self.center2corner_angle = asin(width / 2. / self.half_diag)
 
-    def get_image(self):
+    def _get_image(self):
         """
         Load the car sprite and paint it.
         """
-        self.car_sprite = pygame.image.load(constants.CAR_FILE).convert()
-        car_sprite_pixelarray = pygame.PixelArray(self.car_sprite)
+        self._car_sprite = pygame.image.load(constants.CAR_FILE).convert()
+        car_sprite_pixelarray = pygame.PixelArray(self._car_sprite)
         car_sprite_pixelarray.replace(constants.RED_ORIG_CAR, self.color, 0.1)
-        self.car_sprite = car_sprite_pixelarray.make_surface()
-        self.car_sprite = pygame.transform.scale(self.car_sprite, (10, 15))
-        self.image = pygame.Surface(self.car_sprite.get_size()).convert()
+        self._car_sprite = car_sprite_pixelarray.make_surface()
+        self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
+        self.image = pygame.Surface(self._car_sprite.get_size()).convert()
 
-    def reset(self):
+    def _reset(self):
         """
         Resets the car back to start.
         """
         self.speed = 0.
-        self.direction = self.start_direction
+        self.direction = self._start_direction
         self.distance_try = 0.
         self.halfway = False
         self.laps = 0
-        self.rect.center = self.start_position
+        self.rect.center = self._start_position
         self.pos_x = self.rect.x  # pos_x is float, rect.x is int
         self.pos_y = self.rect.y
-        self.image = pygame.transform.rotate(self.car_sprite,
-                            (self.start_direction-constants.CAR_IMAGE_ANGLE) * 180 / pi)
+        self.image = pygame.transform.rotate(self._car_sprite,
+                            (self._start_direction-constants.CAR_IMAGE_ANGLE) * 180 / pi)
         self.image.set_colorkey(constants.BLACK)
 
     def update(self):
@@ -68,7 +70,7 @@ class Car(pygame.sprite.Sprite):
         Updates the car's direction angle and rotates the image.
         """
         self.direction += angle
-        self.image = pygame.transform.rotate(self.car_sprite,
+        self.image = pygame.transform.rotate(self._car_sprite,
                             (self.direction - constants.CAR_IMAGE_ANGLE)*180/pi)
         self.image.set_colorkey(constants.BLACK)
         self.rect = self.image.get_rect(center=self.rect.center)
@@ -102,3 +104,10 @@ class Car(pygame.sprite.Sprite):
             self.laps += 1
             self.halfway = False
             print "FINISH!"
+
+    def crash(self):
+        """
+        Car crashes onto something. Reset and increase the crash counter.
+        """
+        self.crashes += 1
+        self._reset()
