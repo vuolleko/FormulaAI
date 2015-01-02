@@ -46,6 +46,9 @@ while not done:
     for car in car_list:
         if track.off_track(car):
             car.reset()
+        elif track.halfway(car):
+            car.passed_halfway()
+            print "ok!"
         # print track.off_track(car)
 
     # update draw buffer

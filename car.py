@@ -66,3 +66,6 @@ class Car(pygame.sprite.Sprite):
             y = self.rect.center[1] + self.half_diag * sin(self.direction+angle)
             corners.append([int(x), int(y)])
         return corners
+
+    def passed_halfway(self):
+        self.halfway = True
