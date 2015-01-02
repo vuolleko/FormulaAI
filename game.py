@@ -11,11 +11,11 @@ screen = pygame.display.set_mode((constants.SCREEN_WIDTH,
 pygame.display.set_caption("FormulaAI")
 
 track = track.Track()
-startpos = track.find_start()
+start_position, start_direction = track.find_start(1)
 sprite_list = pygame.sprite.Group()
 sprite_list.add(track)
 
-player_car = car.Car(constants.BLUE, startpos)
+player_car = car.Car(constants.BLUE, start_position[0], start_direction)
 car_list = pygame.sprite.Group()
 car_list.add(player_car)
 sprite_list.add(player_car)
@@ -48,11 +48,8 @@ while not done:
             car.reset()
         elif track.halfway(car):
             car.passed_halfway()
-            print "ok!"
-        # print track.off_track(car)
 
     # update draw buffer
-    # screen.fill(constants.GREEN)
     sprite_list.draw(screen)
 
     # update screen
