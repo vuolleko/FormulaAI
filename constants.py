@@ -5,6 +5,11 @@ RED_ORIG_CAR = (169, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+# colors in track mask file
+COLOR_OFF_TRACK = (255, 255, 255)
+COLOR_HALFWAY = (0, 255, 0)
+COLOR_FINISH = (255, 0, 0)
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 

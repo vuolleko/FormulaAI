@@ -29,6 +29,7 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
 
+    # controls for the player car
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP]:
         player_car.accelerate()
@@ -48,6 +49,8 @@ while not done:
             car.reset()
         elif track.halfway(car):
             car.passed_halfway()
+        elif track.finish(car):
+            car.passed_finish()
 
     # update draw buffer
     sprite_list.draw(screen)
