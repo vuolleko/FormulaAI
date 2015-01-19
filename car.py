@@ -25,12 +25,12 @@ class Car(pygame.sprite.Sprite):
         """
         Load the car sprite and paint it.
         """
-        self._car_sprite = pygame.image.load(constants.CAR_FILE).convert()
+        self._car_sprite = pygame.image.load(constants.CAR_FILE).convert_alpha()
         car_sprite_pixelarray = pygame.PixelArray(self._car_sprite)
         car_sprite_pixelarray.replace(constants.RED_ORIG_CAR, self.color, 0.1)
         self._car_sprite = car_sprite_pixelarray.make_surface()
-        self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
-        self.image = pygame.Surface(self._car_sprite.get_size()).convert()
+        # self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
+        self.image = pygame.Surface(self._car_sprite.get_size()).convert_alpha()
 
     def _reset(self):
         """
@@ -46,7 +46,7 @@ class Car(pygame.sprite.Sprite):
         self.pos_y = self.rect.y
         self.image = pygame.transform.rotate(self._car_sprite,
                             (self._start_direction-constants.CAR_IMAGE_ANGLE) * 180 / pi)
-        self.image.set_colorkey(constants.BLACK)
+        # self.image.set_colorkey(constants.BLACK)
 
     def update(self):
         """

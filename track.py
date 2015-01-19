@@ -3,23 +3,23 @@ import numpy as np
 
 import constants
 
-class Track(pygame.sprite.Sprite):
+class Track():
     def __init__(self):
-        super(Track, self).__init__()
-
         self.load_track()
         self.rect = self.image.get_rect()
 
-
     def load_track(self):
         """
-        Load the track sprite and its mask file.
+        Load the track image and its mask file.
         """
-        track_sprite = pygame.image.load(constants.TRACK_FILE).convert()
+        track_image = pygame.image.load(constants.TRACK_FILE).convert()
         self.image = pygame.Surface((constants.WIDTH_TRACK, constants.HEIGHT_TRACK))
-        self.image.blit(track_sprite, (0, 0))
+        self.image.blit(track_image, (0, 0))
 
-        self.track_mask = pygame.image.load(constants.TRACK_FILE[:-4]+"_mask.png").convert()
+        self.track_mask = pygame.image.load(constants.TRACK_MASK_FILE).convert()
+
+    def draw(self, screen):
+        screen.blit(self.image, (0, 0))
 
     def off_track(self, car):
         """

@@ -1,7 +1,7 @@
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-RED_ORIG_CAR = (169, 0, 0)
+RED_ORIG_CAR = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
@@ -12,7 +12,7 @@ COLOR_OFF_TRACK = (255, 255, 255)
 COLOR_HALFWAY = (0, 255, 0)
 COLOR_FINISH = (255, 0, 0)
 
-WIDTH_TRACK = 800
+WIDTH_TRACK = 600
 HEIGHT_TRACK = 600
 WIDTH_STATUS = 200
 HEIGHT_STATUS = HEIGHT_TRACK
@@ -21,9 +21,9 @@ HEIGHT_SCREEN = HEIGHT_TRACK
 
 FRAME_RATE = 60
 
-CAR_FILE = "assets/CarRed.png"
-TRACK_FILE = "assets/track1.png"
-TRACK_MASK_FILE = "assets/track1_mask.png"
+CAR_FILE = "assets/car_red.png"
+TRACK_FILE = "assets/track2_show.png"
+TRACK_MASK_FILE = "assets/track2_mask.png"
 
 CAR_IMAGE_ANGLE = 1.570796  # 90 deg, 0 deg = right
 TURN_SPEED = 0.052360  # 3 deg

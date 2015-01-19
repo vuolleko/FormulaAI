@@ -13,13 +13,12 @@ pygame.display.set_caption("FormulaAI")
 
 track = Track()
 start_position, start_direction = track.find_start(3)
-sprite_list = pygame.sprite.Group()
-sprite_list.add(track)
 
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction)
 ann_car = Car("ANN", constants.RED, start_position[1], start_direction)
 ai_car = Car("AI", constants.GREEN, start_position[2], start_direction)
 
+sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
 for car in [player_car, ann_car, ai_car]:
     car_list.add(car)
@@ -62,6 +61,7 @@ while not done:
             car.passed_finish()
 
     # update draw buffer
+    track.draw(screen)
     sprite_list.draw(screen)
 
     # update screen
