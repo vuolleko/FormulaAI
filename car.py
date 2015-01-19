@@ -84,7 +84,7 @@ class Car(pygame.sprite.Sprite):
         corners = []
         for angle in [-self.center2corner_angle, self.center2corner_angle]:
             x = self.rect.center[0] + self.half_diag * cos(self.direction+angle)
-            y = self.rect.center[1] + self.half_diag * sin(self.direction+angle)
+            y = self.rect.center[1] - self.half_diag * sin(self.direction+angle)
             corners.append([int(x), int(y)])
         return corners
 
