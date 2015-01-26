@@ -9,8 +9,8 @@ COLOR_TEXT = (30, 30, 30)
 
 # colors in track mask file
 COLOR_OFF_TRACK = (255, 255, 255)
-COLOR_HALFWAY = (0, 255, 0)
-COLOR_FINISH = (255, 0, 0)
+COLOR_HALFWAY = (0, 200, 0)
+COLOR_FINISH = (200, 0, 0)
 
 WIDTH_TRACK = 600
 HEIGHT_TRACK = 600
@@ -27,5 +27,5 @@ TRACK_MASK_FILE = "assets/track2_mask.png"
 
 CAR_IMAGE_ANGLE = 1.570796  # 90 deg, 0 deg = right
 TURN_SPEED = 0.052360  # 3 deg
-ACCELERATION = 0.1
-BRAKING = 0.2
+ACCELERATION = 0.05
+BRAKING = 0.1

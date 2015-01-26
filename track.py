@@ -35,8 +35,7 @@ class Track():
         Finds the starting coordinates and orientation for cars.
         """
         reds = pygame.surfarray.pixels_red(self.track_mask)
-        greens = pygame.surfarray.pixels_green(self.track_mask)
-        markers = np.where((reds == 255) & (greens == 0))
+        markers = np.where(reds == constants.COLOR_FINISH[0])
         startpos = np.empty((2, num_cars))
         for ii in range(2):
             marker_space = np.linspace(markers[ii][0], markers[ii][-1], num_cars+1)
