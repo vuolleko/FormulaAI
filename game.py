@@ -1,6 +1,7 @@
 import pygame
 
 from car import Car
+from driver import Driver
 from track import Track
 from statusbar import Status_bar
 import constants
@@ -26,6 +27,8 @@ for car in [player_car, ann_car, ai_car]:
 
 status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
+
+driver_player = Driver()
 
 done = False
 clock = pygame.time.Clock()
@@ -54,6 +57,7 @@ while not done:
     # update draw buffer
     track.draw(screen)
     sprite_list.draw(screen)
+    driver_player.look(player_car.rect.center, player_car.direction, track, screen)
 
     # update screen
     clock.tick(constants.FRAME_RATE)  # fps

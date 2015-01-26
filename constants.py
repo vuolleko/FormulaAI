@@ -6,6 +6,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 COLOR_TEXT = (30, 30, 30)
+COLOR_VIEW_LINES = (150, 150, 150)
 
 # colors in track mask file
 COLOR_OFF_TRACK = (255, 255, 255)
