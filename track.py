@@ -6,26 +6,35 @@ import constants
 class Track():
     def __init__(self):
         self.load_track()
+        self.load_mask()
         self.rect = self.image.get_rect()
 
     def load_track(self):
         """
-        Load the track image and its mask file.
+        Load the track image.
         """
         track_image = pygame.image.load(constants.TRACK_FILE).convert()
         self.image = pygame.Surface((constants.WIDTH_TRACK, constants.HEIGHT_TRACK))
         self.image.blit(track_image, (0, 0))
 
+    def load_mask(self):
+        """
+        Load the track mask file and prepare a off-track check matrix.
+        The mask is white, but here it's enough to check for blue values,
+        since no other mask things use blue.
+        """
         self.track_mask = pygame.image.load(constants.TRACK_MASK_FILE).convert()
+        blues = pygame.surfarray.pixels_blue(self.track_mask)
+        self._off_track = blues == constants.COLOR_OFF_TRACK[2]
 
     def draw(self, screen):
         screen.blit(self.image, (0, 0))
 
-    def off_track(self, point):
+    def off_track(self, point_x, point_y):
         """
         Check if the coordinate point (x,y) is off track.
         """
-        return self.track_mask.get_at(point) == constants.COLOR_OFF_TRACK
+        return self._off_track[point_x, point_y]
 
     def find_start(self, num_cars):
         """

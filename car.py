@@ -119,7 +119,7 @@ class Car(pygame.sprite.Sprite):
         Check if the car is off track.
         """
         for point in self.get_corners():
-            if track.track_mask.get_at(point) == constants.COLOR_OFF_TRACK:
+            if track.off_track(*point):
                 return True
         return False
 
