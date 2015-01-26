@@ -21,14 +21,11 @@ class Track():
     def draw(self, screen):
         screen.blit(self.image, (0, 0))
 
-    def off_track(self, car):
+    def off_track(self, point):
         """
-        Check if the car is off track.
+        Check if the coordinate point (x,y) is off track.
         """
-        for point in car.get_corners():
-            if self.track_mask.get_at(point) == constants.COLOR_OFF_TRACK:
-                return True
-        return False
+        return self.track_mask.get_at(point) == constants.COLOR_OFF_TRACK
 
     def find_start(self, num_cars):
         """
@@ -46,17 +43,3 @@ class Track():
         start_direction = np.arctan(-normal[1] / normal[0])
 
         return startpos_list, start_direction
-
-    def halfway(self, car):
-        """
-        Check if the car is on top of the halfway mark.
-        """
-        point = car.rect.center
-        return self.track_mask.get_at(point) == constants.COLOR_HALFWAY
-
-    def finish(self, car):
-        """
-        Check if the car is on top of the finish line.
-        """
-        point = car.rect.center
-        return self.track_mask.get_at(point) == constants.COLOR_FINISH

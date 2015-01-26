@@ -48,7 +48,7 @@ class Car(pygame.sprite.Sprite):
                             (self._start_direction-constants.CAR_IMAGE_ANGLE) * 180 / pi)
         # self.image.set_colorkey(constants.BLACK)
 
-    def update(self):
+    def update(self, track):
         """
         Updates the car's position according to the velocity vector.
         """
@@ -58,6 +58,13 @@ class Car(pygame.sprite.Sprite):
         self.pos_y -= self.speed * sin(self.direction)  # pos down
         self.rect.x = int(self.pos_x)
         self.rect.y = int(self.pos_y)
+
+        if self.off_track(track):
+            self.crash()
+        else:
+            self.passed_halfway(track)
+            self.passed_finish(track)
+
 
     def accelerate(self):
         self.speed += constants.ACCELERATION
@@ -88,22 +95,33 @@ class Car(pygame.sprite.Sprite):
             corners.append([int(x), int(y)])
         return corners
 
-    def passed_halfway(self):
+    def passed_halfway(self, track):
         """
         Mark that the car has passed the halfway mark. Makes it impossible
         to finish by simply reversing at start.
         """
-        self.halfway = True
+        if track.track_mask.get_at(self.rect.center) == constants.COLOR_HALFWAY:
+            self.halfway = True
 
-    def passed_finish(self):
+    def passed_finish(self, track):
         """
         Called when car passes the finish line. Only laps
         that pass through the halfway mark are counted.
         """
-        if self.halfway:
-            self.laps += 1
-            self.halfway = False
-            print "FINISH!"
+        if track.track_mask.get_at(self.rect.center) == constants.COLOR_FINISH:
+            if self.halfway:
+                self.laps += 1
+                self.halfway = False
+                print "FINISH!"
+
+    def off_track(self, track):
+        """
+        Check if the car is off track.
+        """
+        for point in self.get_corners():
+            if track.track_mask.get_at(point) == constants.COLOR_OFF_TRACK:
+                return True
+        return False
 
     def crash(self):
         """

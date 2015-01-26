@@ -66,6 +66,7 @@ class Status_bar(pygame.sprite.Sprite):
         status_text_list.append("Laps: {}".format(car.laps))
         status_text_list.append("Lap Distance: {:4.1f}".format(car.distance_try))
         status_text_list.append("Total Distance: {:4.1f}".format(car.distance_total))
+        # status_text_list.append("Best lap: {:4.1f}".format(car.best_laptime))
         for status_text in status_text_list:
             status_rend = status_font.render(status_text, 1, constants.COLOR_TEXT)
             self.image.blit(status_rend, (box_x, box_y))

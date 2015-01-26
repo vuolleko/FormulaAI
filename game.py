@@ -47,18 +47,9 @@ while not done:
     if keys[pygame.K_RIGHT]:
         player_car.turn(-constants.TURN_SPEED)
 
-    # update game status
-    car_list.update()
+    # update game status and handle game logic
+    car_list.update(track)
     status_bar.update()
-
-    # handle game logic
-    for car in car_list:
-        if track.off_track(car):
-            car.crash()
-        elif track.halfway(car):
-            car.passed_halfway()
-        elif track.finish(car):
-            car.passed_finish()
 
     # update draw buffer
     track.draw(screen)

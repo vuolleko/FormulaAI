@@ -25,7 +25,7 @@ CAR_FILE = "assets/car_red.png"
 TRACK_FILE = "assets/track2_show.png"
 TRACK_MASK_FILE = "assets/track2_mask.png"
 
-CAR_IMAGE_ANGLE = 1.570796  # 90 deg, 0 deg = right
+CAR_IMAGE_ANGLE = 1.570796  # 90 deg; 0 deg = right
 TURN_SPEED = 0.052360  # 3 deg
 ACCELERATION = 0.05
 BRAKING = 0.1
