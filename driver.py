@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 
 import constants
+import ann
 
 class Driver(object):
     """
@@ -67,7 +68,7 @@ class Driver(object):
 
 class Player(Driver):
     """
-    This class implements the driver class needed by the player car.
+    This class implements the driver for the player car.
     """
     def __init__(self,
                  view_distance=100,
@@ -79,12 +80,35 @@ class Player(Driver):
         """
         Read keyboard for controlling the player car.
         """
+        car.accelerate = False
+        car.brake = False
+        car.turn_left = False
+        car.turn_right = False
+
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
-            car.accelerate()
+            car.accelerate = True
         if keys[pygame.K_DOWN]:
-            car.brake()
+            car.brake = True
         if keys[pygame.K_LEFT]:
-            car.turn(constants.TURN_SPEED)
+            car.turn_left = True
         if keys[pygame.K_RIGHT]:
-            car.turn(-constants.TURN_SPEED)
+            car.turn_right = True
+
+
+class AI_ANN(Driver):
+    """
+    This class implements the AI driver for a neural network.
+    """
+    def __init__(self,
+                 view_distance=100,
+                 view_resolution=(5,5),
+                 view_angle=90,
+                 n_hidden_neurons=5):
+        super(Player, self).__init__(view_distance, view_resolution, view_angle)
+        n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
+        n_outputs = 4  # left, right, accelerate, brake
+        self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
+
+    def update(self, car, model_car):
+        pass

@@ -37,6 +37,10 @@ class Car(pygame.sprite.Sprite):
         """
         Resets the car back to start.
         """
+        self.accelerate = False
+        self.brake = False
+        self.turn_left = False
+        self.turn_right = False
         self.speed = 0.
         self.direction = self._start_direction
         self.distance_try = 0.
@@ -55,6 +59,17 @@ class Car(pygame.sprite.Sprite):
         Checks if the car has gone off track etc.
         Updates the car's driver.
         """
+        if self.accelerate:
+            self.speed += constants.ACCELERATION
+        if self.brake:
+            self.speed -= constants.BRAKING
+            if self.speed < 0.:
+                self.speed = 0.
+        if self.turn_left:
+            self.turn(constants.TURN_SPEED)
+        if self.turn_right:
+            self.turn(-constants.TURN_SPEED)
+
         self.distance_total += self.speed
         self.distance_try += self.speed
         self.pos_x += self.speed * cos(self.direction)
@@ -70,12 +85,6 @@ class Car(pygame.sprite.Sprite):
 
         self.driver.look(self, track)
         self.driver.update(self)
-
-    def accelerate(self):
-        self.speed += constants.ACCELERATION
-
-    def brake(self):
-        self.speed -= constants.BRAKING
 
     def turn(self, angle):
         """
