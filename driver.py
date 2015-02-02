@@ -53,6 +53,12 @@ class Driver(object):
 
         self.view_field = track.off_track(x_matrix0, y_matrix0)
 
+        # block the view behind corners etc.
+        for ii in range(self.view_resolution[0]):
+            lineview = self.view_field[ii,:]
+            if np.any(lineview):
+                lineview[np.argmax(lineview):] = 1
+
     def draw_viewfield(self, screen):
         """
         Draw the field of view.
