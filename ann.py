@@ -149,11 +149,11 @@ class ANN():
 
         # Then backward pass, starting with the output layer
         delta = ANN.delta_error(activation_list[-1][1:], wanted)
-        gradient_list[-1][:] = np.dot(delta, activation_list[-2].transpose())
+        gradient_list[-1][:] = np.outer(delta, activation_list[-2].transpose())
 
         for layer in range(2, self.num_layers):
             spv = np.insert(ANN.sigmoid_derivative(zeta_list[-layer]), 0, 1., axis=0)
             delta = np.dot(self.weights[-layer+1].transpose(), delta) * spv
-            gradient_list[-layer][:] = np.dot(delta[1:], activation_list[-layer-1].transpose())
+            gradient_list[-layer][:] = np.outer(delta[1:], activation_list[-layer-1].transpose())
 
         return gradient_list

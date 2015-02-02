@@ -71,8 +71,8 @@ class Player(Driver):
     This class implements the driver for the player car.
     """
     def __init__(self,
-                 view_distance=100,
-                 view_resolution=(5,5),
+                 view_distance=150,
+                 view_resolution=(7,7),
                  view_angle=90):
         super(Player, self).__init__(view_distance, view_resolution, view_angle)
 
@@ -101,14 +101,50 @@ class AI_ANN(Driver):
     This class implements the AI driver for a neural network.
     """
     def __init__(self,
-                 view_distance=100,
-                 view_resolution=(5,5),
+                 view_distance=150,
+                 view_resolution=(7,7),
                  view_angle=90,
-                 n_hidden_neurons=5):
-        super(Player, self).__init__(view_distance, view_resolution, view_angle)
+                 n_hidden_neurons=5,
+                 model_car=None,
+                 learning_rate=1,
+                 regularization=1):
+        super(AI_ANN, self).__init__(view_distance, view_resolution, view_angle)
+        self.model_car = model_car  # the car to learn from
+        self.learning_rate = learning_rate
+        self.regularization = regularization
+
         n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
-        n_outputs = 4  # left, right, accelerate, brake
+        n_outputs = 4  # accelerate, brake, left, right
         self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
 
-    def update(self, car, model_car):
-        pass
+    def update(self, own_car):
+        model_inputs = self.prepare_inputs(self.model_car)
+        self.ann.train1(model_inputs, self.model_actions(),
+                        self.learning_rate, self.regularization)
+
+        inputs = self.prepare_inputs(own_car)
+        outputs = self.ann.feedforward(inputs)
+        self.process_output(outputs, own_car)
+
+    def prepare_inputs(self, car):
+        inputs = car.driver.view_field.flatten()
+        speed_transform = np.exp(-car.speed)
+        inputs = np.insert(inputs, 0, speed_transform, axis=0)
+        return inputs
+
+    def model_actions(self):
+        return np.array([self.model_car.accelerate,
+                         self.model_car.brake,
+                         self.model_car.turn_left,
+                         self.model_car.turn_right]).astype(float)
+
+    def process_output(self, outputs, car):
+        threshold = 0.6
+        if outputs[0] > threshold:
+            car.accelerate = True
+        if outputs[1] > threshold:
+            car.brake = True
+        if outputs[2] > threshold:
+            car.turn_left = True
+        if outputs[3] > threshold:
+            car.turn_right = True

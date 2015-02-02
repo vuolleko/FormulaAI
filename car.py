@@ -14,7 +14,7 @@ class Car(pygame.sprite.Sprite):
 
         self._get_image()
         self.rect = self.image.get_rect()
-        self._reset()
+        self.reset()
 
         self.distance_total = 0.
         self.crashes = 0
@@ -33,7 +33,7 @@ class Car(pygame.sprite.Sprite):
         # self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
         self.image = pygame.Surface(self._car_sprite.get_size()).convert_alpha()
 
-    def _reset(self):
+    def reset(self):
         """
         Resets the car back to start.
         """
@@ -142,4 +142,4 @@ class Car(pygame.sprite.Sprite):
         Car crashes onto something. Reset and increase the crash counter.
         """
         self.crashes += 1
-        self._reset()
+        self.reset()

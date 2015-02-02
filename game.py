@@ -15,11 +15,13 @@ pygame.display.set_caption("FormulaAI")
 track = Track()
 start_position, start_direction = track.find_start(3)
 
-# driver_player = Driver()
 
-player_car = Car("Player", constants.BLUE, start_position[0], start_direction, driver.Player())
-ann_car = Car("ANN", constants.RED, start_position[1], start_direction, driver.Driver())
-ai_car = Car("AI", constants.GREEN, start_position[2], start_direction, driver.Driver())
+player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
+                 driver.Player())
+ann_car = Car("ANN", constants.RED, start_position[1], start_direction,
+              driver.AI_ANN(model_car=player_car))
+ai_car = Car("AI", constants.GREEN, start_position[2], start_direction,
+             driver.Driver())
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
@@ -45,6 +47,9 @@ while not done:
                 draw_viewfield = not draw_viewfield
             elif event.key == pygame.K_l:
                 learn_from_player = not learn_from_player
+            elif event.key == pygame.K_r:
+                for car in car_list:
+                    car.reset()
 
     # update game status and handle game logic
     car_list.update(track)
