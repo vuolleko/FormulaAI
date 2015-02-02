@@ -112,7 +112,7 @@ class AI_ANN(Driver):
                  view_angle=90,
                  n_hidden_neurons=5,
                  model_car=None,
-                 learning_rate=1,
+                 learning_rate=0.01,
                  regularization=1):
         super(AI_ANN, self).__init__(view_distance, view_resolution, view_angle)
         self.model_car = model_car  # the car to learn from
@@ -124,6 +124,10 @@ class AI_ANN(Driver):
         self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
 
     def update(self, own_car):
+        own_car.accelerate = False
+        own_car.brake = False
+        own_car.turn_left = False
+        own_car.turn_right = False        
         model_inputs = self.prepare_inputs(self.model_car)
         self.ann.train1(model_inputs, self.model_actions(),
                         self.learning_rate, self.regularization)
@@ -145,6 +149,7 @@ class AI_ANN(Driver):
                          self.model_car.turn_right]).astype(float)
 
     def process_output(self, outputs, car):
+        print outputs
         threshold = 0.6
         if outputs[0] > threshold:
             car.accelerate = True

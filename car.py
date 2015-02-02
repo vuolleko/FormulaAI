@@ -63,12 +63,13 @@ class Car(pygame.sprite.Sprite):
             self.speed += constants.ACCELERATION
         if self.brake:
             self.speed -= constants.BRAKING
-            if self.speed < 0.:
-                self.speed = 0.
         if self.turn_left:
             self.turn(constants.TURN_SPEED)
         if self.turn_right:
             self.turn(-constants.TURN_SPEED)
+        self.speed -= constants.FRICTION
+        if self.speed < 0.:
+            self.speed = 0.
 
         self.distance_total += self.speed
         self.distance_try += self.speed
