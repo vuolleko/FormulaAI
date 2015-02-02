@@ -69,6 +69,7 @@ class Car(pygame.sprite.Sprite):
             self.passed_finish(track)
 
         self.driver.look(self, track)
+        self.driver.update(self)
 
     def accelerate(self):
         self.speed += constants.ACCELERATION

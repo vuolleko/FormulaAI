@@ -4,6 +4,9 @@ import pygame
 import constants
 
 class Driver(object):
+    """
+    This class implements the car's driver: visibility, controls etc.
+    """
     def __init__(self,
                  view_distance=100,
                  view_resolution=(5,5),
@@ -57,3 +60,31 @@ class Driver(object):
                                   self.view_y.flatten(),
                                   self.view_field.flatten()):
             pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[colind], (xx, yy), 3)
+
+    def update(self, *args):
+        pass
+
+
+class Player(Driver):
+    """
+    This class implements the driver class needed by the player car.
+    """
+    def __init__(self,
+                 view_distance=100,
+                 view_resolution=(5,5),
+                 view_angle=90):
+        super(Player, self).__init__(view_distance, view_resolution, view_angle)
+
+    def update(self, car):
+        """
+        Read keyboard for controlling the player car.
+        """
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            car.accelerate()
+        if keys[pygame.K_DOWN]:
+            car.brake()
+        if keys[pygame.K_LEFT]:
+            car.turn(constants.TURN_SPEED)
+        if keys[pygame.K_RIGHT]:
+            car.turn(-constants.TURN_SPEED)
