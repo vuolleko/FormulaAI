@@ -4,12 +4,13 @@ from math import sin, cos, pi, sqrt, asin
 import constants
 
 class Car(pygame.sprite.Sprite):
-    def __init__(self, name, color, start_position, start_direction):
+    def __init__(self, name, color, start_position, start_direction, driver):
         super(Car, self).__init__()
         self.name = name
         self.color = color
         self._start_position = start_position
         self._start_direction = start_direction
+        self.driver = driver
 
         self._get_image()
         self.rect = self.image.get_rect()
@@ -51,6 +52,8 @@ class Car(pygame.sprite.Sprite):
     def update(self, track):
         """
         Updates the car's position according to the velocity vector.
+        Checks if the car has gone off track etc.
+        Updates the car's driver.
         """
         self.distance_total += self.speed
         self.distance_try += self.speed
@@ -65,6 +68,7 @@ class Car(pygame.sprite.Sprite):
             self.passed_halfway(track)
             self.passed_finish(track)
 
+        self.driver.look(self, track)
 
     def accelerate(self):
         self.speed += constants.ACCELERATION

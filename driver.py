@@ -21,22 +21,39 @@ class Driver(object):
         self.view_angles = np.linspace(-self.view_angle/2.,
                                        self.view_angle/2.,
                                        self.view_resolution[0]) * np.pi/180.
-        self.view_matrix = np.zeros(self.view_resolution)
+        self.view_x = np.empty(self.view_resolution)
+        self.view_y = np.empty(self.view_resolution)
+        self.view_field = np.zeros(self.view_resolution)
 
-    def look(self, location, direction, track, screen):
-        cos_angles = np.cos(direction + self.view_angles)
-        x_matrix = location[0] + np.outer(cos_angles, self.view_distances)
-        x_matrix = np.where((x_matrix < 0) | (x_matrix >= constants.WIDTH_TRACK), 0., x_matrix)
+    def look(self, car, track):
+        """
+        Evaluate the driver's view ahead.
+        """
+        cos_angles = np.cos(car.direction + self.view_angles)
+        self.view_x = (car.rect.center[0]
+                       + np.outer(cos_angles, self.view_distances)
+                      ).astype(int)
 
-        sin_angles = np.sin(direction + self.view_angles)
-        y_matrix = location[1] - np.outer(sin_angles, self.view_distances)
-        y_matrix = np.where((y_matrix < 0) | (y_matrix >= constants.HEIGHT_TRACK), 0., y_matrix)
+        sin_angles = np.sin(car.direction + self.view_angles)
+        self.view_y = (car.rect.center[1]
+                       - np.outer(sin_angles, self.view_distances)
+                      ).astype(int)
 
-        x_matrix = x_matrix.astype(int)
-        y_matrix = y_matrix.astype(int)
+        # limit coordinates within track area (only for checking if off track)
+        x_matrix0 = np.where((self.view_x < 0) | 
+                             (self.view_x >= constants.WIDTH_TRACK),
+                             0, self.view_x)
+        y_matrix0 = np.where((self.view_y < 0) |
+                             (self.view_y >= constants.HEIGHT_TRACK),
+                             0, self.view_y)
 
-        self.view_matrix = track.off_track(x_matrix, y_matrix)
+        self.view_field = track.off_track(x_matrix0, y_matrix0)
 
-        if self.draw_visual:
-            for point in zip(x_matrix.flatten(), y_matrix.flatten()):
-                pygame.draw.line(screen, constants.COLOR_VIEW_LINES, location, point)
+    def draw_viewfield(self, screen):
+        """
+        Draw the field of view.
+        """
+        for xx, yy, colind in zip(self.view_x.flatten(),
+                                  self.view_y.flatten(),
+                                  self.view_field.flatten()):
+            pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[colind], (xx, yy), 3)

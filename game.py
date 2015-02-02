@@ -15,9 +15,11 @@ pygame.display.set_caption("FormulaAI")
 track = Track()
 start_position, start_direction = track.find_start(3)
 
-player_car = Car("Player", constants.BLUE, start_position[0], start_direction)
-ann_car = Car("ANN", constants.RED, start_position[1], start_direction)
-ai_car = Car("AI", constants.GREEN, start_position[2], start_direction)
+driver_player = Driver()
+
+player_car = Car("Player", constants.BLUE, start_position[0], start_direction, driver_player)
+ann_car = Car("ANN", constants.RED, start_position[1], start_direction, Driver())
+ai_car = Car("AI", constants.GREEN, start_position[2], start_direction, Driver())
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
@@ -28,9 +30,9 @@ for car in [player_car, ann_car, ai_car]:
 status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
 
-driver_player = Driver()
-
 done = False
+draw_viewfield = False
+learn_from_player = False
 clock = pygame.time.Clock()
 
 while not done:
@@ -38,6 +40,11 @@ while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_v:
+                draw_viewfield = not draw_viewfield
+            elif event.key == pygame.K_l:
+                learn_from_player = not learn_from_player
 
     # controls for the player car
     keys = pygame.key.get_pressed()
@@ -57,7 +64,10 @@ while not done:
     # update draw buffer
     track.draw(screen)
     sprite_list.draw(screen)
-    driver_player.look(player_car.rect.center, player_car.direction, track, screen)
+    if draw_viewfield:
+        for car in car_list:
+            car.driver.draw_viewfield(screen)
+    # driver_player.look(player_car.rect.center, player_car.direction, track, screen)
 
     # update screen
     clock.tick(constants.FRAME_RATE)  # fps
