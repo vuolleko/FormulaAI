@@ -68,8 +68,12 @@ class Driver(object):
                                   self.view_field.flatten()):
             pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[colind], (xx, yy), 3)
 
-    def update(self, *args):
-        pass
+    def update(self, car, *args):
+        # first set default actions
+        car.accelerate = False
+        car.brake = False
+        car.turn_left = False
+        car.turn_right = False
 
 
 class Player(Driver):
@@ -86,10 +90,7 @@ class Player(Driver):
         """
         Read keyboard for controlling the player car.
         """
-        car.accelerate = False
-        car.brake = False
-        car.turn_left = False
-        car.turn_right = False
+        super(Player, self).update(car)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
@@ -124,10 +125,8 @@ class AI_ANN(Driver):
         self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
 
     def update(self, own_car):
-        own_car.accelerate = False
-        own_car.brake = False
-        own_car.turn_left = False
-        own_car.turn_right = False        
+        super(AI_ANN, self).update(own_car)
+
         model_inputs = self.prepare_inputs(self.model_car)
         self.ann.train1(model_inputs, self.model_actions(),
                         self.learning_rate, self.regularization)

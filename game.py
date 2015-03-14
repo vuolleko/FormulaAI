@@ -6,7 +6,12 @@ from track import Track
 from statusbar import Status_bar
 import constants
 
+# init stuff
 pygame.init()
+clock = pygame.time.Clock()
+done = False
+draw_viewfield = False
+learn_from_player = False
 
 screen = pygame.display.set_mode((constants.WIDTH_SCREEN,
                                   constants.HEIGHT_SCREEN))
@@ -32,11 +37,6 @@ for car in [player_car, ann_car, ai_car]:
 status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
 
-done = False
-draw_viewfield = False
-learn_from_player = False
-clock = pygame.time.Clock()
-
 while not done:
     # handle events
     for event in pygame.event.get():
@@ -50,6 +50,9 @@ while not done:
             elif event.key == pygame.K_r:
                 for car in car_list:
                     car.reset()
+            elif event.key == pygame.K_t:
+                # train_ann()
+                pass
 
     # update game status and handle game logic
     car_list.update(track)
