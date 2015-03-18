@@ -3,15 +3,18 @@ import pygame
 
 import constants
 import ann
+# from pybrain.tools.shortcuts import buildNetwork
+# from pybrain.datasets import SupervisedDataSet
+# from pybrain.supervised.trainers import BackpropTrainer
 
 class Driver(object):
     """
     This class implements the car's driver: visibility, controls etc.
     """
     def __init__(self,
-                 view_distance=100,
-                 view_resolution=(5,5),
-                 view_angle=90):
+                 view_distance=constants.MAX_VIEW_DISTANCE,
+                 view_resolution=constants.VIEW_RESOLUTION,
+                 view_angle=constants.VIEW_ANGLE):
         self.view_distance = view_distance
         self.view_resolution = view_resolution
         self.view_angle = view_angle
@@ -54,10 +57,11 @@ class Driver(object):
         self.view_field = track.off_track(x_matrix0, y_matrix0)
 
         # block the view behind corners etc.
-        for ii in range(self.view_resolution[0]):
-            lineview = self.view_field[ii,:]
-            if np.any(lineview):
-                lineview[np.argmax(lineview):] = 1
+        if constants.BLOCK_VIEW:
+            for ii in range(self.view_resolution[0]):
+                lineview = self.view_field[ii,:]
+                if np.any(lineview):
+                    lineview[np.argmax(lineview):] = 1
 
     def draw_viewfield(self, screen):
         """
@@ -69,8 +73,10 @@ class Driver(object):
             pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[colind], (xx, yy), 3)
 
     def update(self, car, *args):
-        # first set default actions
-        car.accelerate = False
+        """
+        Default actions for drivers.
+        """
+        car.accelerate = constants.ALWAYS_FULLGAS
         car.brake = False
         car.turn_left = False
         car.turn_right = False
@@ -80,11 +86,8 @@ class Player(Driver):
     """
     This class implements the driver for the player car.
     """
-    def __init__(self,
-                 view_distance=150,
-                 view_resolution=(7,7),
-                 view_angle=90):
-        super(Player, self).__init__(view_distance, view_resolution, view_angle)
+    def __init__(self, *args, **kwargs):
+        super(Player, self).__init__(*args, **kwargs)
 
     def update(self, car):
         """
@@ -103,41 +106,45 @@ class Player(Driver):
             car.turn_right = True
 
 
-class AI_ANN(Driver):
+class ANN_SGD(Driver):
     """
     This class implements the AI driver for a neural network.
+    The network is trained online using stochastic gradient descent.
     """
     def __init__(self,
-                 view_distance=150,
-                 view_resolution=(7,7),
-                 view_angle=90,
                  n_hidden_neurons=5,
                  model_car=None,
-                 learning_rate=0.01,
-                 regularization=1):
-        super(AI_ANN, self).__init__(view_distance, view_resolution, view_angle)
+                 learning_rate=0.1,
+                 regularization=1.,
+                 *args, **kwargs):
+        super(ANN_SGD, self).__init__(*args, **kwargs)
         self.model_car = model_car  # the car to learn from
         self.learning_rate = learning_rate
         self.regularization = regularization
 
         n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
         n_outputs = 4  # accelerate, brake, left, right
+        # self.ann = buildNetwork(n_inputs, n_hidden_neurons, n_outputs)
         self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
 
     def update(self, own_car):
-        super(AI_ANN, self).update(own_car)
+        super(ANN_SGD, self).update(own_car)
 
+        self.learn()
+        inputs = self.prepare_inputs(own_car)
+        outputs = self.ann.feedforward(inputs)
+        # outputs = self.ann.activate(inputs)
+        self.process_output(outputs, own_car)
+
+    def learn(self):
         model_inputs = self.prepare_inputs(self.model_car)
         self.ann.train1(model_inputs, self.model_actions(),
                         self.learning_rate, self.regularization)
 
-        inputs = self.prepare_inputs(own_car)
-        outputs = self.ann.feedforward(inputs)
-        self.process_output(outputs, own_car)
-
     def prepare_inputs(self, car):
-        inputs = car.driver.view_field.flatten()
-        speed_transform = np.exp(-car.speed)
+        inputs = car.driver.view_field.flatten().astype(float)
+        # speed_transform = np.exp(-car.speed)
+        speed_transform = 1. / max(car.speed, 1.)
         inputs = np.insert(inputs, 0, speed_transform, axis=0)
         return inputs
 
@@ -148,8 +155,7 @@ class AI_ANN(Driver):
                          self.model_car.turn_right]).astype(float)
 
     def process_output(self, outputs, car):
-        print outputs
-        threshold = 0.6
+        threshold = 0.5
         if outputs[0] > threshold:
             car.accelerate = True
         if outputs[1] > threshold:
@@ -158,3 +164,54 @@ class AI_ANN(Driver):
             car.turn_left = True
         if outputs[3] > threshold:
             car.turn_right = True
+
+
+class ANN_Batch(ANN_SGD):
+    """
+    This class implements the AI driver for a neural network.
+    The network is trained online using gradient descent with
+    a batch of accumulated samples.
+    """
+    def __init__(self,
+                 n_hidden_neurons=4,
+                 model_car=None,
+                 learning_rate=0.5,
+                 regularization=0.1,
+                 epochs=4,
+                 mini_batch_size=20,
+                 *args, **kwargs):
+        super(ANN_Batch, self).__init__(n_hidden_neurons, model_car,
+            learning_rate, regularization, *args, **kwargs)
+        self.epochs = epochs
+        self.mini_batch_size = mini_batch_size
+        # self.samples = SupervisedDataSet(self.view_resolution[0] * self.view_resolution[1] + 1, 4)
+        # self.trainer = BackpropTrainer(self.ann, self.samples)
+        self.input_samples = []
+        self.output_samples = []
+
+    def learn(self):
+        """
+        This method is called by the update method in the parent class.
+        Here we only spy the model car.
+        """
+        self.input_samples.append(self.prepare_inputs(self.model_car))
+        self.output_samples.append(self.model_actions())
+        # self.samples.addSample(self.prepare_inputs(self.model_car), self.model_actions())
+
+    def train(self):
+        """
+        Train the whole set of samples.
+        NOTE: May take a while and pause the game!
+        """
+        self.ann.train_set(self.input_samples, self.output_samples,
+                           self.learning_rate, self.regularization,
+                           self.epochs, self.mini_batch_size)
+        # for ii in range(10):
+            # print self.trainer.train()
+        # print self.trainer.trainUntilConvergence()
+        self.reset_samples()
+
+    def reset_samples(self):
+        # self.samples.clear()
+        self.input_samples = []
+        self.output_samples = []

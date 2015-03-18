@@ -20,17 +20,16 @@ pygame.display.set_caption("FormulaAI")
 track = Track()
 start_position, start_direction = track.find_start(3)
 
-
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
                  driver.Player())
-ann_car = Car("ANN", constants.RED, start_position[1], start_direction,
-              driver.AI_ANN(model_car=player_car))
-ai_car = Car("AI", constants.GREEN, start_position[2], start_direction,
-             driver.Driver())
+ann_sgd_car = Car("ANN_SGD", constants.RED, start_position[2], start_direction,
+                  driver.ANN_SGD(model_car=player_car))
+ann_batch_car = Car("ANN_Batch", constants.GREEN, start_position[1],
+                    start_direction, driver.ANN_Batch(model_car=player_car))
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
-for car in [player_car, ann_car, ai_car]:
+for car in [player_car, ann_sgd_car, ann_batch_car]:
     car_list.add(car)
     sprite_list.add(car)
 
@@ -50,9 +49,9 @@ while not done:
             elif event.key == pygame.K_r:
                 for car in car_list:
                     car.reset()
+                ann_batch_car.driver.reset_samples()
             elif event.key == pygame.K_t:
-                # train_ann()
-                pass
+                ann_batch_car.driver.train()
 
     # update game status and handle game logic
     car_list.update(track)

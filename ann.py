@@ -97,16 +97,20 @@ class ANN():
             np.random.shuffle(rand_inds)
             for jj in range(0, n_samples, mini_batch_size):
                 inds = rand_inds[jj: jj+mini_batch_size]
-                self.train_minibatch(inputs[inds], wanted[inds],
+                inputs1 = [inputs[ind] for ind in inds]
+                wanted1 = [wanted[ind] for ind in inds]
+                self.train_minibatch(inputs1, wanted1,
                                      learning_rate, regularization/n_samples)
 
             print "Epoch {} trained.".format(ii)
+            # test_data = [(x,y) for (x,y) in zip(inputs, wanted)]
+            test_data = zip(inputs, wanted)
             if test_data:
                 print "Evaluation: {0} / {1}".format(
                     self.evaluate(test_data), len(test_data))
 
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y) for (x,y) in test_data]
+        test_results = [(np.round(self.feedforward(x)), y) for (x,y) in test_data]
         return sum(x==y for (x,y) in test_results)
 
     def train_minibatch(self, inputs, wanted, learning_rate, regularization):
