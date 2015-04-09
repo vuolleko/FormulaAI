@@ -106,7 +106,7 @@ class Player(Driver):
             car.turn_right = True
 
 
-class ANN_SGD(Driver):
+class ANN_Online(Driver):
     """
     This class implements the AI driver for a neural network.
     The network is trained online using stochastic gradient descent.
@@ -117,7 +117,7 @@ class ANN_SGD(Driver):
                  learning_rate=0.1,
                  regularization=1.,
                  *args, **kwargs):
-        super(ANN_SGD, self).__init__(*args, **kwargs)
+        super(ANN_Online, self).__init__(*args, **kwargs)
         self.model_car = model_car  # the car to learn from
         self.learning_rate = learning_rate
         self.regularization = regularization
@@ -125,10 +125,10 @@ class ANN_SGD(Driver):
         n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
         n_outputs = 4  # accelerate, brake, left, right
         # self.ann = buildNetwork(n_inputs, n_hidden_neurons, n_outputs)
-        self.ann = ann.ANN((n_inputs, n_hidden_neurons, n_outputs))
+        self.ann = ann.ANN(n_inputs, n_hidden_neurons, n_outputs)
 
     def update(self, own_car):
-        super(ANN_SGD, self).update(own_car)
+        super(ANN_Online, self).update(own_car)
 
         self.learn()
         inputs = self.prepare_inputs(own_car)
@@ -166,26 +166,26 @@ class ANN_SGD(Driver):
             car.turn_right = True
 
 
-class ANN_Batch(ANN_SGD):
+class ANN_Batch(ANN_Online):
     """
     This class implements the AI driver for a neural network.
     The network is trained online using gradient descent with
     a batch of accumulated samples.
     """
     def __init__(self,
-                 n_hidden_neurons=4,
+                 n_hidden_neurons=10,
                  model_car=None,
-                 learning_rate=0.5,
+                 learning_rate=0.1,
                  regularization=0.1,
-                 epochs=4,
-                 mini_batch_size=20,
+                 epochs=10,
+                 mini_batch_size=100,
                  *args, **kwargs):
         super(ANN_Batch, self).__init__(n_hidden_neurons, model_car,
             learning_rate, regularization, *args, **kwargs)
         self.epochs = epochs
         self.mini_batch_size = mini_batch_size
         # self.samples = SupervisedDataSet(self.view_resolution[0] * self.view_resolution[1] + 1, 4)
-        # self.trainer = BackpropTrainer(self.ann, self.samples)
+        # self.trainer = BackpropTrainer(self.ann, self.samples, momentum=0.99)
         self.input_samples = []
         self.output_samples = []
 

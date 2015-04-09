@@ -2,10 +2,9 @@ import numpy as np
 
 """
 A class representing artificial neural networks.
-Design partly following:
-Neural networks and deep learning, 2015
+Currently supports feed-forward networks with one hidden layer.
 """
-class ANN():
+class ANN(object):
 
     @staticmethod
     def sigmoid(zeta):
@@ -25,139 +24,112 @@ class ANN():
     @staticmethod
     def cost(outputs, wanted):
         """
-        Cross entropy cost function
+        Cross-entropy cost function
         """
         return np.nan_to_num(np.sum(-wanted * np.log(outputs)
-                                    -(1.-wanted) * np.log(1.-outputs)))
-
-    @staticmethod
-    def delta_error(outputs, wanted):
-        """
-        Error delta from the output layer.
-        """
-        return outputs - wanted
+                                    -(1. - wanted) * np.log(1. - outputs)))
 
 
-    def __init__(self, sizes):
-        """
-        The argument 'sizes' is a list of sizes of the neuron layers,
-        i.e. [#inputs, #hidden1, #hidden2, ..., #outputs].
-        """
-        self.sizes = sizes
-        self.num_layers = len(sizes)
+    def __init__(self, n_input, n_hidden, n_output):
+        self.sizes = (n_input, n_hidden, n_output)
+        self.n_input = n_input
+        self.n_hidden = n_hidden
+        self.n_output = n_output
         self.init_weights()
-
+        
     def init_weights(self):
         """
-        Initializes the weights and biases (index 0 of weights)
+        Initialize weights and biases for network connections.
         """
-        self.weights = []
-        for layer in range(1, self.num_layers):
-            weights = np.random.randn(self.sizes[layer], 
-                                      1+self.sizes[layer-1])
-            weights[:, 1:] /= np.sqrt(self.sizes[layer-1])
-            self.weights.append(weights)
+        self.hidden_bias = np.random.randn(self.n_hidden)
+        self.hidden_weights = np.random.randn(self.n_hidden, self.n_input)
+        self.hidden_weights /= np.sqrt(self.n_input)
+        self.output_bias = np.random.randn(self.n_output)
+        self.output_weights = np.random.randn(self.n_output, self.n_hidden)
+        self.output_weights /= np.sqrt(self.n_hidden)
 
-    def feedforward(self, activation):
+    def feedforward(self, inputs):
         """
-        Evaluate neuron outputs from the activation function.
+        Activate inputs through the network.
         """
-        for weights in self.weights:
-            activation = np.insert(activation, 0, 1., axis=0)
-            activation = ANN.sigmoid(np.dot(weights, activation))
-        return activation
+        hidden_activated = ANN.sigmoid(np.dot(self.hidden_weights, inputs)
+                                       + self.hidden_bias)
+        output_activated = ANN.sigmoid(np.dot(self.output_weights, hidden_activated)
+                                       + self.output_bias)
+        return output_activated
+
+    def backpropagate(self, inputs, wanted):
+        """
+        Backpropagate the error in one input/output sample to get cost gradients.
+        """
+        hidden_zeta = np.dot(self.hidden_weights, inputs) + self.hidden_bias
+        hidden_activated = ANN.sigmoid(hidden_zeta)
+        output_zeta = (np.dot(self.output_weights, hidden_activated)
+                       + self.output_bias)
+        output_activated = ANN.sigmoid(output_zeta)
+
+        delta_output = output_activated - wanted
+        delta_hidden = (np.dot(self.output_weights.T, delta_output)
+                        * ANN.sigmoid_derivative(hidden_zeta))
+
+        output_cost_gradient_bias = delta_output
+        output_cost_gradient_weight = np.outer(delta_output, hidden_activated)
+
+        hidden_cost_gradient_bias = delta_hidden
+        hidden_cost_gradient_weight = np.outer(delta_hidden, inputs)
+
+        return [output_cost_gradient_bias, output_cost_gradient_weight,
+                hidden_cost_gradient_bias, hidden_cost_gradient_weight]
 
     def train1(self, inputs, wanted, learning_rate, regularization):
         """
-        Train the network with online gradient descent (one input set).
+        Train the network with online gradient descent (one set of inputs).
         Arguments:
         - inputs: a data vector for the input layer
         - wanted: a correct output data vector
         - learning_rate: learning rate for the gradient descent method
         - regularization: the parameter in the regularization term
         """
-        gradient_list = self.backpropagate(inputs, wanted)
-        for layer in range(self.num_layers-1):
-            self.weights[layer][1:] *= (1. - learning_rate * regularization)
-            self.weights[layer] -= learning_rate * gradient_list[layer]
+        self.train_minibatch([inputs], [wanted], learning_rate, regularization)
 
-    def train_set(self, inputs, wanted, learning_rate, regularization,
-        epochs, mini_batch_size, test_data=None):
+    def train_minibatch(self, inputs_batch, wanted_batch, learning_rate,
+                        regularization):
+        """
+        Train the network with stochastic gradient descent (mini batch).
+        """
+
+        gradients = self.backpropagate(inputs_batch[0], wanted_batch[0])
+        for ii in range(1, len(inputs_batch)):
+            gradients1 = self.backpropagate(inputs_batch[ii], wanted_batch[ii])
+            for jj, grad in enumerate(gradients):
+                gradients[jj] += grad
+
+        self.output_bias -= learning_rate * gradients[0] / len(inputs_batch)
+        # self.output_weights *= (1. - learning_rate * regularization)
+        self.output_weights -= learning_rate * gradients[1] / len(inputs_batch)
+        self.hidden_bias -= learning_rate * gradients[2] / len(inputs_batch)
+        # self.hidden_weights *= (1. - learning_rate * regularization)
+        self.hidden_weights -= learning_rate * gradients[3] / len(inputs_batch)
+
+    def train_set(self, inputs_set, wanted_set, learning_rate, regularization,
+        epochs, mini_batch_size):
         """
         Train the network with stochastic gradient descent.
         Arguments:
-        - inputs: a list of data vectors for the input layer
-        - wanted: a list of correct outputs data vector
+        - inputs_set: a list of data vectors for the input layer
+        - wanted_set: a list of correct outputs data vector
         - learning_rate: learning rate for the gradient descent method
         - regularization: the parameter in the regularization term
+        - epochs: passes through the training set
+        - mini_batch_size: size of mini batches
         """
-        n_samples = len(inputs)
+        n_samples = len(inputs_set)
         rand_inds = np.arange(n_samples)
         for ii in range(epochs):
             np.random.shuffle(rand_inds)
             for jj in range(0, n_samples, mini_batch_size):
                 inds = rand_inds[jj: jj+mini_batch_size]
-                inputs1 = [inputs[ind] for ind in inds]
-                wanted1 = [wanted[ind] for ind in inds]
-                self.train_minibatch(inputs1, wanted1,
+                inputs_batch = [inputs_set[ind] for ind in inds]
+                wanted_batch = [wanted_set[ind] for ind in inds]
+                self.train_minibatch(inputs_batch, wanted_batch,
                                      learning_rate, regularization/n_samples)
-
-            print "Epoch {} trained.".format(ii)
-            # test_data = [(x,y) for (x,y) in zip(inputs, wanted)]
-            test_data = zip(inputs, wanted)
-            if test_data:
-                print "Evaluation: {0} / {1}".format(
-                    self.evaluate(test_data), len(test_data))
-
-    def evaluate(self, test_data):
-        test_results = [(np.round(self.feedforward(x)), y) for (x,y) in test_data]
-        return sum(x==y for (x,y) in test_results)
-
-    def train_minibatch(self, inputs, wanted, learning_rate, regularization):
-        """
-        Train the network with stochastic gradient descent (mini batch).
-        Arguments:
-        - inputs: a list of data vectors for the input layer
-        - wanted: a list of correct outputs data vector
-        - learning_rate: learning rate for the gradient descent method
-        - regularization: the parameter in the regularization term
-        """
-        gradient_list = [np.zeros(w.shape) for w in self.weights]
-        for inputs1, wanted1 in zip(inputs, wanted):
-            gradient_list1 = self.backpropagate(inputs1, wanted1)
-            for layer in range(self.num_layers-1):
-                gradient_list[layer][:] += gradient_list1[layer]
-
-        for layer in range(self.num_layers-1):
-            self.weights[layer][1:] *= (1. - learning_rate * regularization)
-            self.weights[layer] -= learning_rate * gradient_list[layer] / len(inputs)
-
-    def backpropagate(self, inputs, wanted):
-        """
-        Returns the gradient of the cost function.
-        """
-
-        # First feedforward
-        activations = np.insert(inputs, 0, 1., axis=0)  # append one for bias term
-
-        gradient_list = []
-        activation_list = [activations]
-        zeta_list = []
-
-        for weights in self.weights:
-            gradient_list.append(np.empty_like(weights))
-            zeta = np.dot(weights, activations)
-            zeta_list.append(zeta)
-            activations = np.insert(ANN.sigmoid(zeta), 0, 1., axis=0)
-            activation_list.append(activations)
-
-        # Then backward pass, starting with the output layer
-        delta = ANN.delta_error(activation_list[-1][1:], wanted)
-        gradient_list[-1][:] = np.outer(delta, activation_list[-2].transpose())
-
-        for layer in range(2, self.num_layers):
-            spv = np.insert(ANN.sigmoid_derivative(zeta_list[-layer]), 0, 1., axis=0)
-            delta = np.dot(self.weights[-layer+1].transpose(), delta) * spv
-            gradient_list[-layer][:] = np.outer(delta[1:], activation_list[-layer-1].transpose())
-
-        return gradient_list

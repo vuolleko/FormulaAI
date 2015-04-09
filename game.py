@@ -22,8 +22,8 @@ start_position, start_direction = track.find_start(3)
 
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
                  driver.Player())
-ann_sgd_car = Car("ANN_SGD", constants.RED, start_position[2], start_direction,
-                  driver.ANN_SGD(model_car=player_car))
+ann_sgd_car = Car("ANN_Online", constants.RED, start_position[2], start_direction,
+                  driver.ANN_Online(model_car=player_car))
 ann_batch_car = Car("ANN_Batch", constants.GREEN, start_position[1],
                     start_direction, driver.ANN_Batch(model_car=player_car))
 
@@ -52,6 +52,14 @@ while not done:
                 ann_batch_car.driver.reset_samples()
             elif event.key == pygame.K_t:
                 ann_batch_car.driver.train()
+            elif event.key == pygame.K_p:
+                paused = True
+                while paused:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_p:
+                                paused = False
+                    clock.tick(constants.FRAME_RATE)  # fps
 
     # update game status and handle game logic
     car_list.update(track)
