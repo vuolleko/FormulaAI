@@ -161,6 +161,12 @@ class ANN_Online(Driver):
         if outputs[3] > threshold:
             car.turn_right = True
 
+    def error(self):
+        inputs = self.prepare_inputs(self.model_car)
+        outputs = self.ann.feedforward(inputs)
+        wanted = self.model_actions()
+        return self.ann.cost(outputs, wanted)
+
 
 class ANN_Batch(ANN_Online):
     """

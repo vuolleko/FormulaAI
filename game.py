@@ -4,6 +4,7 @@ from car import Car
 import driver
 from track import Track
 from statusbar import Status_bar
+from plot_error import Error_plot
 import constants
 
 # init stuff
@@ -35,6 +36,10 @@ for car in [player_car, ann_online_car, ann_batch_car]:
 
 status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
+
+if constants.PLOT_ERROR:
+    error_plot = Error_plot()
+    error_plot_counter = 0
 
 while not done:
     # handle events
@@ -71,6 +76,15 @@ while not done:
     if draw_viewfield:
         for car in car_list:
             car.driver.draw_viewfield(screen)
+
+    # update error plot
+    if constants.PLOT_ERROR:
+        if error_plot_counter % constants.PLOT_ERROR_INTERVAL == 0:
+            error1 = ann_online_car.driver.error()
+            error2 = ann_batch_car.driver.error()
+            error_plot.update(error1, error2)
+        error_plot_counter += 1
+
 
     # update screen
     clock.tick(constants.FRAME_RATE)  # fps
