@@ -22,14 +22,14 @@ start_position, start_direction = track.find_start(3)
 
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
                  driver.Player())
-ann_sgd_car = Car("ANN_Online", constants.RED, start_position[2], start_direction,
-                  driver.ANN_Online(model_car=player_car))
+ann_online_car = Car("ANN_Online", constants.RED, start_position[2],
+                     start_direction, driver.ANN_Online(model_car=player_car))
 ann_batch_car = Car("ANN_Batch", constants.GREEN, start_position[1],
                     start_direction, driver.ANN_Batch(model_car=player_car))
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
-for car in [player_car, ann_sgd_car, ann_batch_car]:
+for car in [player_car, ann_online_car, ann_batch_car]:
     car_list.add(car)
     sprite_list.add(car)
 

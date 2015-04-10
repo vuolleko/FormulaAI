@@ -3,9 +3,7 @@ import pygame
 
 import constants
 import ann
-# from pybrain.tools.shortcuts import buildNetwork
-# from pybrain.datasets import SupervisedDataSet
-# from pybrain.supervised.trainers import BackpropTrainer
+
 
 class Driver(object):
     """
@@ -124,7 +122,6 @@ class ANN_Online(Driver):
 
         n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
         n_outputs = 4  # accelerate, brake, left, right
-        # self.ann = buildNetwork(n_inputs, n_hidden_neurons, n_outputs)
         self.ann = ann.ANN(n_inputs, n_hidden_neurons, n_outputs)
 
     def update(self, own_car):
@@ -133,7 +130,6 @@ class ANN_Online(Driver):
         self.learn()
         inputs = self.prepare_inputs(own_car)
         outputs = self.ann.feedforward(inputs)
-        # outputs = self.ann.activate(inputs)
         self.process_output(outputs, own_car)
 
     def learn(self):
@@ -173,21 +169,18 @@ class ANN_Batch(ANN_Online):
     a batch of accumulated samples.
     """
     def __init__(self,
-                 n_hidden_neurons=10,
+                 n_hidden_neurons=5,
                  model_car=None,
                  learning_rate=0.1,
                  regularization=0.1,
-                 epochs=10,
-                 mini_batch_size=100,
+                 epochs=20,
+                 mini_batch_size=1000,
                  *args, **kwargs):
         super(ANN_Batch, self).__init__(n_hidden_neurons, model_car,
             learning_rate, regularization, *args, **kwargs)
         self.epochs = epochs
         self.mini_batch_size = mini_batch_size
-        # self.samples = SupervisedDataSet(self.view_resolution[0] * self.view_resolution[1] + 1, 4)
-        # self.trainer = BackpropTrainer(self.ann, self.samples, momentum=0.99)
-        self.input_samples = []
-        self.output_samples = []
+        self.reset_samples()
 
     def learn(self):
         """
@@ -196,22 +189,19 @@ class ANN_Batch(ANN_Online):
         """
         self.input_samples.append(self.prepare_inputs(self.model_car))
         self.output_samples.append(self.model_actions())
-        # self.samples.addSample(self.prepare_inputs(self.model_car), self.model_actions())
 
     def train(self):
         """
         Train the whole set of samples.
         NOTE: May take a while and pause the game!
         """
+        print "Training {} samples for {} epochs in batches of {}".format(
+               len(self.input_samples), self.epochs, self.mini_batch_size)
         self.ann.train_set(self.input_samples, self.output_samples,
                            self.learning_rate, self.regularization,
                            self.epochs, self.mini_batch_size)
-        # for ii in range(10):
-            # print self.trainer.train()
-        # print self.trainer.trainUntilConvergence()
         self.reset_samples()
 
     def reset_samples(self):
-        # self.samples.clear()
         self.input_samples = []
         self.output_samples = []

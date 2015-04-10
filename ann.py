@@ -101,7 +101,7 @@ class ANN(object):
         gradients = self.backpropagate(inputs_batch[0], wanted_batch[0])
         for ii in range(1, len(inputs_batch)):
             gradients1 = self.backpropagate(inputs_batch[ii], wanted_batch[ii])
-            for jj, grad in enumerate(gradients):
+            for jj, grad in enumerate(gradients1):
                 gradients[jj] += grad
 
         self.output_bias -= learning_rate * gradients[0] / len(inputs_batch)
