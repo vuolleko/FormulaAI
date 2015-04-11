@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((constants.WIDTH_SCREEN,
 pygame.display.set_caption("FormulaAI")
 
 track = Track()
-start_position, start_direction = track.find_start(3)
+start_position, start_direction = track.find_start(4)
 
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
                  driver.Player())
@@ -27,10 +27,12 @@ ann_online_car = Car("ANN_Online", constants.RED, start_position[2],
                      start_direction, driver.ANN_Online(model_car=player_car))
 ann_batch_car = Car("ANN_Batch", constants.GREEN, start_position[1],
                     start_direction, driver.ANN_Batch(model_car=player_car))
+ai_tif_car = Car("AI_TIF", constants.YELLOW, start_position[3], start_direction,
+                 driver.AI_TIF())
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
-for car in [player_car, ann_online_car, ann_batch_car]:
+for car in [player_car, ann_online_car, ann_batch_car, ai_tif_car]:
     car_list.add(car)
     sprite_list.add(car)
 

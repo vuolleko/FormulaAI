@@ -25,7 +25,7 @@ class Track():
         """
         self.track_mask = pygame.image.load(constants.TRACK_MASK_FILE).convert()
         blues = pygame.surfarray.pixels_blue(self.track_mask)
-        self._off_track = blues == constants.COLOR_OFF_TRACK[2]
+        self._off_track = (blues == constants.COLOR_OFF_TRACK[2]) * 1.
 
     def draw(self, screen):
         screen.blit(self.image, (0, 0))

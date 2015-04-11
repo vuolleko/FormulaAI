@@ -52,7 +52,7 @@ class Driver(object):
                              (self.view_y >= constants.HEIGHT_TRACK),
                              0, self.view_y)
 
-        self.view_field = track.off_track(x_matrix0, y_matrix0)
+        self.view_field[:] = track.off_track(x_matrix0, y_matrix0)
 
         # block the view behind corners etc.
         if constants.BLOCK_VIEW:
@@ -68,7 +68,7 @@ class Driver(object):
         for xx, yy, colind in zip(self.view_x.flatten(),
                                   self.view_y.flatten(),
                                   self.view_field.flatten()):
-            pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[colind], (xx, yy), 3)
+            pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[int(colind)], (xx, yy), 3)
 
     def update(self, car, *args):
         """
@@ -102,6 +102,38 @@ class Player(Driver):
             car.turn_left = True
         if keys[pygame.K_RIGHT]:
             car.turn_right = True
+
+
+class AI_TIF(Driver):
+    """
+    This class implements a simple AI driver that tries to keep most of 
+    the track in front of its view field.
+    """
+    def __init__(self, *args, **kwargs):
+        super(AI_TIF, self).__init__(*args, **kwargs)
+        # speed that still (kind of) allows a 90 degree turn
+        self.allowed_speed = constants.MAX_VIEW_DISTANCE / (
+                             np.pi / (2. * constants.TURN_SPEED))
+
+    def update(self, car):
+        """
+        The car turns depending on whether its closest side checks
+        are off track. Brake is applied if the car is going too fast
+        with wall in front, and especially if the corner is tight.
+        """
+        super(AI_TIF, self).update(car)
+        if self.view_field[0,0] and not self.view_field[-1,0]:
+            car.turn_left = True
+        elif self.view_field[-1,0] and not self.view_field[0,0]:
+            car.turn_right = True
+
+        if self.view_field[self.view_resolution[0]/2, -1]:
+            car.brake = car.speed > self.allowed_speed
+
+            # special handling of tight corners
+            if not all(self.view_field[[0,-1],-1]) and car.speed > 1.:
+                car.brake = True
+
 
 
 class ANN_Online(Driver):
@@ -177,7 +209,7 @@ class ANN_Batch(ANN_Online):
     def __init__(self,
                  n_hidden_neurons=5,
                  model_car=None,
-                 learning_rate=0.1,
+                 learning_rate=0.5,
                  regularization=0.1,
                  epochs=20,
                  mini_batch_size=1000,
