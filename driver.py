@@ -113,7 +113,7 @@ class AI_TIF(Driver):
         super(AI_TIF, self).__init__(*args, **kwargs)
         # speed that still (kind of) allows a 90 degree turn
         self.allowed_speed = constants.MAX_VIEW_DISTANCE / (
-                             np.pi / (2. * constants.TURN_SPEED))
+                             np.pi / (1.5 * constants.TURN_SPEED))
 
     def update(self, car):
         """
@@ -132,7 +132,7 @@ class AI_TIF(Driver):
             car.brake = car.speed > self.allowed_speed
 
             # special handling of tight corners
-            if not all(self.view_field[[0,-1],-1]) and car.speed > 1.:
+            if not all(self.view_field[[0,-1], 1]) and car.speed > 1.:
                 car.brake = True
 
 
