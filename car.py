@@ -14,9 +14,11 @@ class Car(pygame.sprite.Sprite):
 
         self._get_image()
         self.rect = self.image.get_rect()
-        self.reset()
+        self.reset(0.)
 
         self.distance_total = 0.
+        self.laps_total = 0
+        self.lap_frame_best = 999999
         self.crashes = 0
         width, height = self._car_sprite.get_size()
         self.half_diag = sqrt(width**2. + height**2.) / 2.
@@ -33,7 +35,7 @@ class Car(pygame.sprite.Sprite):
         # self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
         self.image = pygame.Surface(self._car_sprite.get_size()).convert_alpha()
 
-    def reset(self):
+    def reset(self, frame_counter):
         """
         Resets the car back to start.
         """
@@ -46,6 +48,8 @@ class Car(pygame.sprite.Sprite):
         self.distance_try = 0.
         self.halfway = False
         self.laps = 0
+        self.lap_frame = 0.
+        self.lap_frame_prev = frame_counter
         self.rect.center = self._start_position
         self.pos_x = self.rect.x  # pos_x is float, rect.x is int
         self.pos_y = self.rect.y
@@ -53,7 +57,7 @@ class Car(pygame.sprite.Sprite):
                             (self._start_direction-constants.CAR_IMAGE_ANGLE) * 180 / pi)
         # self.image.set_colorkey(constants.BLACK)
 
-    def update(self, track):
+    def update(self, track, frame_counter):
         """
         Updates the car's position according to the velocity vector.
         Checks if the car has gone off track etc.
@@ -79,10 +83,10 @@ class Car(pygame.sprite.Sprite):
         self.rect.y = int(self.pos_y)
 
         if self.off_track(track):
-            self.crash()
+            self.crash(frame_counter)
         else:
             self.passed_halfway(track)
-            self.passed_finish(track)
+            self.passed_finish(track, frame_counter)
 
         self.driver.look(self, track)
         self.driver.update(self)
@@ -118,7 +122,7 @@ class Car(pygame.sprite.Sprite):
         if track.track_mask.get_at(self.rect.center) == constants.COLOR_HALFWAY:
             self.halfway = True
 
-    def passed_finish(self, track):
+    def passed_finish(self, track, frame_counter):
         """
         Called when car passes the finish line. Only laps
         that pass through the halfway mark are counted.
@@ -126,6 +130,10 @@ class Car(pygame.sprite.Sprite):
         if track.track_mask.get_at(self.rect.center) == constants.COLOR_FINISH:
             if self.halfway:
                 self.laps += 1
+                self.laps_total += 1
+                self.lap_frame = frame_counter - self.lap_frame_prev
+                self.lap_frame_prev = frame_counter
+                self.lap_frame_best = min(self.lap_frame_best, self.lap_frame)
                 self.halfway = False
                 print "FINISH!"
 
@@ -138,9 +146,9 @@ class Car(pygame.sprite.Sprite):
                 return True
         return False
 
-    def crash(self):
+    def crash(self, frame_counter):
         """
         Car crashes onto something. Reset and increase the crash counter.
         """
         self.crashes += 1
-        self.reset()
+        self.reset(frame_counter)

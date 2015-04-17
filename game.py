@@ -41,7 +41,8 @@ sprite_list.add(status_bar)
 
 if constants.PLOT_ERROR:
     error_plot = Error_plot()
-    error_plot_counter = 0
+
+frame_counter = 0
 
 while not done:
     # handle events
@@ -55,7 +56,7 @@ while not done:
                 learn_from_player = not learn_from_player
             elif event.key == pygame.K_r:
                 for car in car_list:
-                    car.reset()
+                    car.reset(frame_counter)
                 ann_batch_car.driver.reset_samples()
             elif event.key == pygame.K_t:
                 ann_batch_car.driver.train()
@@ -69,8 +70,8 @@ while not done:
                     clock.tick(constants.FRAME_RATE)  # fps
 
     # update game status and handle game logic
-    car_list.update(track)
-    status_bar.update()
+    car_list.update(track, frame_counter)
+    status_bar.update(frame_counter)
 
     # update draw buffer
     track.draw(screen)
@@ -81,15 +82,14 @@ while not done:
 
     # update error plot
     if constants.PLOT_ERROR:
-        if error_plot_counter % constants.PLOT_ERROR_INTERVAL == 0:
+        if frame_counter % constants.PLOT_ERROR_INTERVAL == 0:
             error1 = ann_online_car.driver.error()
             error2 = ann_batch_car.driver.error()
             error_plot.update(error1, error2)
-        error_plot_counter += 1
-
 
     # update screen
     clock.tick(constants.FRAME_RATE)  # fps
+    frame_counter += 1
     pygame.display.flip()
 
 

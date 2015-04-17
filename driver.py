@@ -122,6 +122,7 @@ class AI_TIF(Driver):
         with wall in front, and especially if the corner is tight.
         """
         super(AI_TIF, self).update(car)
+        car.accelerate = True
         if self.view_field[0,0] and not self.view_field[-1,0]:
             car.turn_left = True
         elif self.view_field[-1,0] and not self.view_field[0,0]:
@@ -144,7 +145,7 @@ class ANN_Online(Driver):
     def __init__(self,
                  n_hidden_neurons=5,
                  model_car=None,
-                 learning_rate=0.1,
+                 learning_rate=0.2,
                  regularization=1.,
                  *args, **kwargs):
         super(ANN_Online, self).__init__(*args, **kwargs)
@@ -209,10 +210,10 @@ class ANN_Batch(ANN_Online):
     def __init__(self,
                  n_hidden_neurons=5,
                  model_car=None,
-                 learning_rate=0.5,
+                 learning_rate=0.2,
                  regularization=0.1,
-                 epochs=20,
-                 mini_batch_size=1000,
+                 epochs=60,
+                 mini_batch_size=100,
                  *args, **kwargs):
         super(ANN_Batch, self).__init__(n_hidden_neurons, model_car,
             learning_rate, regularization, *args, **kwargs)
