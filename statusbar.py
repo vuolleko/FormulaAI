@@ -5,6 +5,9 @@ import statusbox
 import constants
 
 class Status_bar(pygame.sprite.Sprite):
+    """
+    This class implements a status bar for the game.
+    """
     def __init__(self, car_list):
         super(Status_bar, self).__init__()
         self.car_list = car_list

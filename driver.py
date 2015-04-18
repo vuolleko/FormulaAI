@@ -18,8 +18,12 @@ class Driver(object):
         self.view_angle = view_angle
         self.draw_visual = True
         self.init_view()
+        self.error = 0.
 
     def init_view(self):
+        """
+        Initialize the driver's view.
+        """
         self.view_distances = np.linspace(constants.MIN_VIEW_DISTANCE,
                                           self.view_distance,
                                           self.view_resolution[1])
@@ -121,6 +125,7 @@ class AI_TIF(Driver):
         are off track. Brake is applied if the car is going too fast
         with wall in front, and especially if the corner is tight.
         """
+        # TODO: tuned for track and settings, generalize!
         super(AI_TIF, self).update(car)
         car.accelerate = True
         if self.view_field[0,0] and not self.view_field[-1,0]:
@@ -160,6 +165,9 @@ class ANN_Online(Driver):
     def update(self, own_car):
         super(ANN_Online, self).update(own_car)
 
+        if constants.PLOT_ERROR:
+            self.evaluate_error()
+
         self.learn()
         inputs = self.prepare_inputs(own_car)
         outputs = self.ann.feedforward(inputs)
@@ -194,11 +202,14 @@ class ANN_Online(Driver):
         if outputs[3] > threshold:
             car.turn_right = True
 
-    def error(self):
+    def evaluate_error(self):
+        """
+        Evaluate the cost function with model input data.
+        """
         inputs = self.prepare_inputs(self.model_car)
         outputs = self.ann.feedforward(inputs)
         wanted = self.model_actions()
-        return self.ann.cost(outputs, wanted)
+        self.error = self.ann.cost(outputs, wanted)
 
 
 class ANN_Batch(ANN_Online):

@@ -40,7 +40,7 @@ status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
 
 if constants.PLOT_ERROR:
-    error_plot = Error_plot()
+    error_plot = Error_plot([ann_online_car, ann_batch_car])
 
 frame_counter = 0
 
@@ -82,10 +82,7 @@ while not done:
 
     # update error plot
     if constants.PLOT_ERROR:
-        if frame_counter % constants.PLOT_ERROR_INTERVAL == 0:
-            error1 = ann_online_car.driver.error()
-            error2 = ann_batch_car.driver.error()
-            error_plot.update(error1, error2)
+        error_plot.update(frame_counter)
 
     # update screen
     clock.tick(constants.FRAME_RATE)  # fps

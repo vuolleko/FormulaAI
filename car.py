@@ -4,6 +4,9 @@ from math import sin, cos, pi, sqrt, asin
 import constants
 
 class Car(pygame.sprite.Sprite):
+    """
+    This class implements the drawing and behavior of cars (excluding controls.)
+    """
     def __init__(self, name, color, start_position, start_direction, driver):
         super(Car, self).__init__()
         self.name = name
@@ -135,7 +138,7 @@ class Car(pygame.sprite.Sprite):
                 self.lap_frame_prev = frame_counter
                 self.lap_frame_best = min(self.lap_frame_best, self.lap_frame)
                 self.halfway = False
-                print "FINISH!"
+                print self.name + ": FINISH!"
 
     def off_track(self, track):
         """
