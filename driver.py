@@ -49,7 +49,7 @@ class Driver(object):
                       ).astype(int)
 
         # limit coordinates within track area (only for checking if off track)
-        x_matrix0 = np.where((self.view_x < 0) | 
+        x_matrix0 = np.where((self.view_x < 0) |
                              (self.view_x >= constants.WIDTH_TRACK),
                              0, self.view_x)
         y_matrix0 = np.where((self.view_y < 0) |
@@ -110,7 +110,7 @@ class Player(Driver):
 
 class AI_TIF(Driver):
     """
-    This class implements a simple AI driver that tries to keep most of 
+    This class implements a simple AI driver that tries to keep most of
     the track in front of its view field.
     """
     def __init__(self, *args, **kwargs):
@@ -245,8 +245,8 @@ class ANN_Batch(ANN_Online):
         Train the whole set of samples.
         NOTE: May take a while and pause the game!
         """
-        print "Training {} samples for {} epochs in batches of {}".format(
-               len(self.input_samples), self.epochs, self.mini_batch_size)
+        print("Training {} samples for {} epochs in batches of {}".format(
+               len(self.input_samples), self.epochs, self.mini_batch_size))
         self.ann.train_set(self.input_samples, self.output_samples,
                            self.learning_rate, self.regularization,
                            self.epochs, self.mini_batch_size)
