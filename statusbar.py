@@ -1,7 +1,6 @@
 from __future__ import division
 import pygame
 
-import statusbox
 import constants
 
 class Status_bar(pygame.sprite.Sprite):

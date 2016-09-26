@@ -3,6 +3,9 @@ import numpy as np
 """
 A class representing artificial neural networks.
 Currently supports feed-forward networks with one hidden layer.
+
+Partly following implementation in:
+http://neuralnetworksanddeeplearning.com
 """
 class ANN(object):
 
@@ -36,7 +39,7 @@ class ANN(object):
         self.n_hidden = n_hidden
         self.n_output = n_output
         self.init_weights()
-        
+
     def init_weights(self):
         """
         Initialize weights and biases for network connections.
