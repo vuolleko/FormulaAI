@@ -17,7 +17,7 @@ class Status_bar(pygame.sprite.Sprite):
         self.rect.x = constants.WIDTH_TRACK
 
         self._draw_title()
-        self.box_yoffset = 100
+        self.box_yoffset = 60
         self.height_box = (constants.HEIGHT_STATUS - self.box_yoffset) / len(self.car_list)
         # self.frame_counter = 0
 
@@ -39,7 +39,7 @@ class Status_bar(pygame.sprite.Sprite):
         timer_box = pygame.Surface((constants.WIDTH_STATUS, self.box_yoffset/2))
         timer_box.fill(constants.WHITE)
         box_x = 20
-        box_y = 50
+        box_y = 30
         self.image.blit(timer_box, (box_x, box_y))
 
         timer_font = pygame.font.Font(None, 50)
@@ -58,12 +58,16 @@ class Status_bar(pygame.sprite.Sprite):
         name_font.set_bold(True)
         name_rend = name_font.render(car.name, 1, constants.COLOR_TEXT)
         self.image.blit(name_rend, (box_x, box_y))
-        box_y += 50
+        box_y += 30
 
         status_font = pygame.font.Font(None, 25)
         status_text_list = []
         status_text_list.append("Crashes: {}".format(car.crashes))
-        status_text_list.append("Laps: {} ({})".format(car.laps, car.laps_total))
+        lbr = ' A ' if car.accelerate else '   '
+        lbr += ' L ' if car.turn_left else '   '
+        lbr += ' B ' if car.brake else '   '
+        lbr += ' R ' if car.turn_right else '   '
+        status_text_list.append("Laps: {} ({})    ".format(car.laps, car.laps_total) + lbr)
         # status_text_list.append("Lap Distance: {:4.1f}".format(car.distance_try))
         if car.lap_frame > 1.:
             lap_time_text = "{0:02.0f}:{1:05.2f}".format(*mins_secs(car.lap_frame))
