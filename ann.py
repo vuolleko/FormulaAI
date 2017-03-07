@@ -1,4 +1,19 @@
 import numpy as np
+import keras
+
+
+def create_ANN_Keras(n_input, n_hidden, n_output):
+    """Creates a simple artificial neural network similar to class ANN but using Keras.
+    """
+    model = keras.models.Sequential()
+    model.add(keras.layers.Dense(n_hidden, input_dim=n_input, init='normal'))
+    model.add(keras.layers.Activation('sigmoid'))
+    model.add(keras.layers.Dense(n_output, init='normal'))
+    model.add(keras.layers.Activation('sigmoid'))
+    model.compile(optimizer=keras.optimizers.SGD(0.1),
+                  loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
 
 """
 A class representing artificial neural networks.
