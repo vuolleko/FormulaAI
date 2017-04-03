@@ -41,7 +41,7 @@ class Driver(object):
         cos_angles = np.cos(car.direction + self.view_angles)
         self.view_x = (car.rect.center[0]
                        + np.outer(cos_angles, self.view_distances)
-                      ).astype(int)
+                       ).astype(int)
 
         sin_angles = np.sin(car.direction + self.view_angles)
         self.view_y = (car.rect.center[1]
@@ -74,14 +74,11 @@ class Driver(object):
                                   self.view_field.flatten()):
             pygame.draw.circle(screen, constants.COLOR_VIEWFIELD[int(colind)], (xx, yy), 3)
 
-    def update(self, car, *args):
+    def update(self, car, frame_counter, *args):
         """
         Default actions for drivers.
         """
-        car.accelerate = constants.ALWAYS_FULLGAS
-        car.brake = False
-        car.turn_left = False
-        car.turn_right = False
+        car.init_controls()
 
 
 class Player(Driver):
@@ -91,11 +88,11 @@ class Player(Driver):
     def __init__(self, *args, **kwargs):
         super(Player, self).__init__(*args, **kwargs)
 
-    def update(self, car):
+    def update(self, car, frame_counter, *args, **kwargs):
         """
         Read keyboard for controlling the player car.
         """
-        super(Player, self).update(car)
+        super(Player, self).update(car, frame_counter, *args, **kwargs)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
@@ -119,14 +116,14 @@ class AI_TIF(Driver):
         self.allowed_speed = constants.MAX_VIEW_DISTANCE / (
                              np.pi / (1.5 * constants.TURN_SPEED))
 
-    def update(self, car):
+    def update(self, car, frame_counter, *args):
         """
         The car turns depending on whether its closest side checks
         are off track. Brake is applied if the car is going too fast
         with wall in front, and especially if the corner is tight.
         """
         # TODO: tuned for track and settings, generalize!
-        super(AI_TIF, self).update(car)
+        super(AI_TIF, self).update(car, frame_counter, *args)
         car.accelerate = True
         if self.view_field[0,0] and not self.view_field[-1,0]:
             car.turn_left = True
@@ -141,7 +138,6 @@ class AI_TIF(Driver):
                 car.brake = True
 
 
-
 class ANN_Online(Driver):
     """
     This class implements the AI driver for a neural network.
@@ -152,18 +148,24 @@ class ANN_Online(Driver):
                  model_car=None,
                  learning_rate=0.2,
                  regularization=1.,
+                 use_keras=False,
                  *args, **kwargs):
         super(ANN_Online, self).__init__(*args, **kwargs)
         self.model_car = model_car  # the car to learn from
         self.learning_rate = learning_rate
         self.regularization = regularization
+        self.use_keras = use_keras
 
         n_inputs = self.view_resolution[0] * self.view_resolution[1] + 1  # viewpoints + speed
         n_outputs = 4  # accelerate, brake, left, right
-        self.ann = ann.ANN(n_inputs, n_hidden_neurons, n_outputs)
 
-    def update(self, own_car):
-        super(ANN_Online, self).update(own_car)
+        if self.use_keras:
+            self.ann = ann.create_ANN_Keras(n_inputs, n_hidden_neurons, n_outputs)
+        else:
+            self.ann = ann.ANN(n_inputs, n_hidden_neurons, n_outputs)
+
+    def update(self, own_car, frame_counter, *args):
+        super(ANN_Online, self).update(own_car, frame_counter, *args)
 
         if constants.PLOT_ERROR:
             self.evaluate_error()
@@ -183,13 +185,21 @@ class ANN_Online(Driver):
         # speed_transform = np.exp(-car.speed)
         speed_transform = 1. / max(car.speed, 1.)
         inputs = np.insert(inputs, 0, speed_transform, axis=0)
-        return inputs
+
+        if self.use_keras:
+            return inputs[None, :]
+        else:
+            return inputs
 
     def model_actions(self):
-        return np.array([self.model_car.accelerate,
+        actions = np.array([self.model_car.accelerate,
                          self.model_car.brake,
                          self.model_car.turn_left,
                          self.model_car.turn_right]).astype(float)
+        if self.use_keras:
+            return actions[None, :]
+        else:
+            return actions
 
     def process_output(self, outputs, car):
         threshold = 0.5
@@ -255,3 +265,115 @@ class ANN_Batch(ANN_Online):
     def reset_samples(self):
         self.input_samples = []
         self.output_samples = []
+
+
+class ReinforcedLearner(ANN_Online):
+    """
+    This class implements the AI driver that learns all by itself
+    using Reinforced learning (Q-Learning).
+
+    Some inspiration from:
+    http://outlace.com/Reinforcement-Learning-Part-3/
+    """
+    def __init__(self,
+                 discount=0.9,
+                 n_memories=300,
+                 mini_batch_size=50,
+                 learning_rate=0.2,
+                 regularization=0.1,
+                 *args, **kwargs):
+        super(ReinforcedLearner, self).__init__(*args, **kwargs)
+        self.discount = discount
+        self.prob_random = 1.  # initial probability of chooosing random action
+        self.skip_frames = 5
+
+        # init state
+        self.prev_state = np.concatenate(([0], self.view_field.flatten().astype(float)))
+        if self.use_keras:
+            self.prev_state = self.prev_state[None, :]
+        self.qval = self.ann.predict(self.prev_state)[0]
+        self.action = 1  # brake, since car at start which gives neg. reward
+
+        self.n_memories = n_memories
+        self.memories = []  # prev_state, action, new_state, reward
+        self.mini_batch_size = mini_batch_size
+
+    def update(self, own_car, frame_counter, *args):
+        if frame_counter % self.skip_frames != 0:
+            return
+
+        own_car.init_controls()
+        # super(ReinforcedLearner, self).update(own_car)
+
+        # get reward from previous action
+        reward = self.get_reward(own_car, frame_counter)
+        print('reward {:.2f}, prob {:.2f}'.format(reward, self.prob_random))
+
+        new_state = self.prepare_inputs(own_car)
+        self.memories.append([self.prev_state, self.action, new_state, reward])
+
+        # remove too old memories
+        if len(self.memories) > self.n_memories:
+            self.memories.pop(0)
+
+        # select memories to train on
+        sel_inds = np.random.choice(len(self.memories),
+                                    min(len(self.memories), self.mini_batch_size),
+                                    replace=False)
+
+        inputs = []
+        targets = []
+        for ind in sel_inds:
+            prev_state = self.memories[ind][0]
+            action = self.memories[ind][1]
+            new_state = self.memories[ind][2]
+            reward = self.memories[ind][3]
+
+            target = self.ann.predict(prev_state)[0]  # Q for previous state
+            new_Q = self.ann.predict(new_state)[0]  # Q for new state after move
+            target[action] += reward #- self.learning_rate * target[action]
+            if not np.isclose(reward, -10):  # check for terminal state
+                target[action] += self.discount * np.max(new_Q)
+                # target[action] += self.learning_rate * self.discount * np.max(new_Q)
+
+            inputs.append(prev_state)
+            targets.append(target)
+
+        if self.use_keras:
+            self.ann.fit(np.array(inputs), np.array(targets), batch_size=len(inputs), nb_epoch=1, verbose=0)
+        else:
+            self.ann.train_set(inputs, targets, self.learning_rate, self.regularization)
+
+        new_state = self.memories[-1][2]
+        self.qval = self.ann.predict(new_state)[0]
+
+        # choose action
+        if self.prob_random > np.random.rand():
+            self.action = np.random.randint(0, 4)
+        else:
+            self.action = np.argmax(self.qval)
+
+        # set car controls according to the chosen action
+        self.process_output(np.eye(1, 4, self.action)[0], own_car)
+        self.prev_state = new_state
+
+        # decrease randomness over time
+        if self.prob_random > 0.1 and own_car.speed > 0:
+            self.prob_random *= 0.99
+
+        if constants.PLOT_ERROR:
+            self.evaluate_error()
+
+    def get_reward(self, own_car, frame_counter):
+        # check if car just hit a wall and was reset to beginning
+        if own_car.lap_frame_prev >= frame_counter - self.skip_frames:
+        # if own_car.distance_try < 1e-4:
+            return -10
+        else:  # give reward for clear view and speed
+            # clearness = 2. - np.sum(self.view_field[2, :3]) - 2. * np.sum(self.view_field[:, 0])
+            # clearness = (self.view_resolution[0]-2) - np.sum(self.view_field[1:-1, :2])
+            # clearness = self.view_resolution[0] * self.view_resolution[1] - np.sum(self.view_field) * 2.6
+            # return clearness * (own_car.speed) * 2
+            # return clearness * (own_car.speed + constants.ACCELERATION) * 5
+            # return own_car.distance_try
+            return own_car.speed - constants.ACCELERATION

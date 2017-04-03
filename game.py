@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((constants.WIDTH_SCREEN,
 pygame.display.set_caption("FormulaAI")
 
 track = Track()
-start_position, start_direction = track.find_start(4)
+start_position, start_direction = track.find_start(5)
 
 player_car = Car("Player", constants.BLUE, start_position[0], start_direction,
                  driver.Player())
@@ -29,10 +29,15 @@ ann_online_car = Car("ANN_Online", constants.RED, start_position[2],
                      start_direction, driver.ANN_Online(model_car=ai_tif_car))
 ann_batch_car = Car("ANN_Batch", constants.GREEN, start_position[1],
                     start_direction, driver.ANN_Batch(model_car=ai_tif_car))
+rl_car = Car("RLearner", constants.CYAN, start_position[-1],
+             start_direction, driver.ReinforcedLearner(use_keras=False,
+                                                       model_car=ai_tif_car))
+                                                       # view_angle=60., n_hidden_neurons=5,
+                                                       # view_distance=100.))
 
 sprite_list = pygame.sprite.Group()
 car_list = pygame.sprite.Group()
-for car in [player_car, ann_online_car, ann_batch_car, ai_tif_car]:
+for car in [player_car, ann_online_car, ann_batch_car, ai_tif_car, rl_car]:
     car_list.add(car)
     sprite_list.add(car)
 
@@ -40,7 +45,7 @@ status_bar = Status_bar(car_list)
 sprite_list.add(status_bar)
 
 if constants.PLOT_ERROR:
-    error_plot = Error_plot([ann_online_car, ann_batch_car])
+    error_plot = Error_plot([ann_online_car, ann_batch_car, rl_car])
 
 frame_counter = 0
 
@@ -57,6 +62,9 @@ while not done:
             elif event.key == pygame.K_r:
                 for car in car_list:
                     car.reset(frame_counter)
+            elif event.key == pygame.K_f:
+                for car in car_list:
+                    car.flip()
                 ann_batch_car.driver.reset_samples()
             elif event.key == pygame.K_t:
                 ann_batch_car.driver.train()
