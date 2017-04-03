@@ -44,7 +44,7 @@ class Track():
         markers = np.where(reds == constants.COLOR_FINISH[0])
         startpos = np.empty((2, num_cars))
         for ii in range(2):
-            marker_space = np.linspace(markers[ii][0], markers[ii][-1], num_cars+1)
+            marker_space = np.linspace(markers[ii][5], markers[ii][-5], num_cars+1)
             startpos[ii,:] = (marker_space[:-1] + marker_space[1:]) / 2.
         startpos_list = [(startpos[0,ii], startpos[1,ii]) for ii in range(num_cars)]
 
