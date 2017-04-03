@@ -76,6 +76,9 @@ class ANN(object):
                                        + self.output_bias)
         return output_activated
 
+    def predict(self, inputs):
+        return [self.feedforward(inputs)]
+
     def backpropagate(self, inputs, wanted):
         """
         Backpropagate the error in one input/output sample to get cost gradients.
@@ -130,7 +133,7 @@ class ANN(object):
         self.hidden_weights -= learning_rate * gradients[3] / len(inputs_batch)
 
     def train_set(self, inputs_set, wanted_set, learning_rate, regularization,
-        epochs, mini_batch_size):
+        epochs=1, mini_batch_size=None, n_samples_train=None):
         """
         Train the network with stochastic gradient descent.
         Arguments:
@@ -139,13 +142,18 @@ class ANN(object):
         - learning_rate: learning rate for the gradient descent method
         - regularization: the parameter in the regularization term
         - epochs: passes through the training set
-        - mini_batch_size: size of mini batches
+        - mini_batch_size: size of mini batches [optional]
+        - n_samples_train: number of samples to train, if not all [optional]
         """
         n_samples = len(inputs_set)
+        if mini_batch_size is None:
+            mini_batch_size = n_samples
+        if n_samples_train is None:
+            n_samples_train = n_samples
         rand_inds = np.arange(n_samples)
         for ii in range(epochs):
             np.random.shuffle(rand_inds)
-            for jj in range(0, n_samples, mini_batch_size):
+            for jj in range(0, n_samples_train, mini_batch_size):
                 inds = rand_inds[jj: jj+mini_batch_size]
                 inputs_batch = [inputs_set[ind] for ind in inds]
                 wanted_batch = [wanted_set[ind] for ind in inds]
