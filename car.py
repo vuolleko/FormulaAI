@@ -38,14 +38,20 @@ class Car(pygame.sprite.Sprite):
         # self._car_sprite = pygame.transform.scale(self._car_sprite, (10, 15))
         self.image = pygame.Surface(self._car_sprite.get_size()).convert_alpha()
 
+    def init_controls(self):
+        """
+        Sets car controls to defaults.
+        """
+        self.accelerate = constants.ALWAYS_FULLGAS
+        self.brake = False
+        self.turn_left = False
+        self.turn_right = False
+
     def reset(self, frame_counter):
         """
         Resets the car back to start.
         """
-        self.accelerate = False
-        self.brake = False
-        self.turn_left = False
-        self.turn_right = False
+        self.init_controls()
         self.speed = 0.
         self.direction = self._start_direction
         self.distance_try = 0.
@@ -92,7 +98,7 @@ class Car(pygame.sprite.Sprite):
             self.passed_finish(track, frame_counter)
 
         self.driver.look(self, track)
-        self.driver.update(self)
+        self.driver.update(self, frame_counter)
 
     def turn(self, angle):
         """
@@ -138,7 +144,7 @@ class Car(pygame.sprite.Sprite):
                 self.lap_frame_prev = frame_counter
                 self.lap_frame_best = min(self.lap_frame_best, self.lap_frame)
                 self.halfway = False
-                print(self.name + ": FINISH!")
+                # print(self.name + ": FINISH!")
 
     def off_track(self, track):
         """
@@ -155,3 +161,10 @@ class Car(pygame.sprite.Sprite):
         """
         self.crashes += 1
         self.reset(frame_counter)
+
+    def flip(self):
+        """
+        Flip car's direction.
+        """
+        self.speed = 0.
+        self.direction += pi
