@@ -62,7 +62,7 @@ class Status_bar(pygame.sprite.Sprite):
 
         status_font = pygame.font.Font(None, 25)
         status_text_list = []
-        status_text_list.append("Crashes: {}".format(car.crashes))
+        status_text_list.append("Crashes: {} Speed: {:.2f}".format(car.crashes, car.speed))
         lbr = ' A ' if car.accelerate else '   '
         lbr += ' L ' if car.turn_left else '   '
         lbr += ' B ' if car.brake else '   '
